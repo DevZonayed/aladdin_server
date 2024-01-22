@@ -237,8 +237,13 @@ export class StrategyService {
       if (credentials[0]?.binanceCredentials) {
         let { apiKey, apiSecret } = credentials[0]?.binanceCredentials;
         let balence = await this.binanceService.checkBalance(apiKey, apiSecret);
-        console.log(balence)
 
+        return createApiResponse(
+          HttpStatus.ACCEPTED,
+          SUCCESS_RESPONSE,
+          "Strategy Webhook Received",
+          balence,
+        );
       }
 
 

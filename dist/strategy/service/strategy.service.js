@@ -143,7 +143,7 @@ let StrategyService = class StrategyService {
             if (credentials[0]?.binanceCredentials) {
                 let { apiKey, apiSecret } = credentials[0]?.binanceCredentials;
                 let balence = await this.binanceService.checkBalance(apiKey, apiSecret);
-                console.log(balence);
+                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Strategy Webhook Received", balence);
             }
             return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Strategy Webhook Received", []);
         }
