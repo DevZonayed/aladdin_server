@@ -1,0 +1,47 @@
+DB_HOST=202.91.42.198
+DB_NAME=rikolDB
+DB_PORT=27017
+DB_USER=root
+DB_PASSWORD=mongorootPass2023
+
+THROTTLER_SHORT_NAME=short
+THROTTLER_MEDIUM_NAME=medium
+THROTTLER_LONG_NAME=long
+
+THROTTLER_SHORT_TTL=1000
+THROTTLER_MEDIUM_TTL=10000
+THROTTLER_LONG_TTL=60000
+
+THROTTLER_SHORT_LIMIT=3
+THROTTLER_MEDIUM_LIMIT=20
+THROTTLER_LONG_LIMIT=100
+
+MAIL_HOST=mail.pixfar.com
+MAIL_PORT=465
+MAIL_SECURE=true
+MAIL_IGNORE_TLS=true
+MAIL_USER=no-reply@pixfar.com
+MAIL_PASSWORD="&0W38}p.%*j!"
+MAIL_SENDER_NAME='RIKOUL'
+MAIL_VERIFICATION_HOST=http://localhost:3000/api
+
+JWT_SECRECT_KEY=bXfW6ARGUihfZUrhMnV82aZzaDyxzM
+JWT_EXPIRES_IN=1d
+
+# Google Authentication Enviroment Variables
+GOOGLE_CLIENT_ID = "554519869151-v5oaroh73d9u7snbeseujesvabpqh3f5.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
+GOOGLE_AUTH_SCOPES = ["profile" , "email"]
+GOOGLE_AUTH_REDIRECT = "http://localhost:3001/api/auth/google/redirect"
+
+# Facebook Authentication Enviroment Variables
+FACEBOOK_APP_ID = "307274361767511"
+FACEBOOK_APP_SECRET = "c510e5926b7ddbfd283d8dad1dcd3f22"
+FACEBOOK_AUTH_REDIRECT = "http://localhost:3001/api/auth/facebook/redirect"
+
+# Apple Authentication Enviroment Variables
+APPLE_CLIENT_ID="dummyAppleClientID"
+APPLE_TEAM_ID="dummyAppleTeamId"
+APPLE_KEY_ID="dummyAppleKeyId"
+APPLE_PRIVATE_KEY="dummyApplePrivateKey"
+APPLE_AUTH_REDIRECT = "http://localhost:3001/api/auth/apple/redirect"
