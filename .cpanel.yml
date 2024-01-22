@@ -1,0 +1,8 @@
+Create the .cpanel.yml file and insert the following code-
+##### THIS ALLOWS US TO DEPLOY THE SITE FROM A GIT REPO ######—Deployment:
+Tasks:
+– export DEPLOYPATH=/home/shorobin/aladdin_server/
+- /bin/bash
+- npm install
+- npm run build
+- npm run start:prod
