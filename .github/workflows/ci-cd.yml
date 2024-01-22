@@ -32,13 +32,11 @@ jobs:
           PORT: 22
           FOLDER: aladdin_server
         run: |
-          # Install SSH client
           sudo apt-get update
           sudo apt-get install -y openssh-client
-          # Setup SSH key
           mkdir -p ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p $PORT $HOST >> ~/.ssh/known_hosts
-          # Sync files
-          rsync -avz --delete -e "ssh -p $PORT" ./ $USERNAME@$HOST:$FOLDER
+          set -x
+          rsync -avz -vv --delete -e "ssh -p $PORT" ./ $USERNAME@$HOST:$FOLDER
