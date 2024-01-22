@@ -27,7 +27,7 @@ jobs:
       - name: Deploying to cPanel
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-          HOST: https://aladdinai.trade:2083
+          HOST: aladdinai.trade
           USERNAME: shorobin
           PORT: 22
           FOLDER: aladdin_server
