@@ -9,7 +9,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BinanceService = void 0;
 const common_1 = require("@nestjs/common");
 const constants_1 = require("../../common/constants");
-const binance_constants_1 = require("../constants/binance.constants");
 const Binance = require('node-binance-api');
 let BinanceService = class BinanceService {
     async checkBalance(apiKey, secretKey) {
@@ -28,8 +27,7 @@ let BinanceService = class BinanceService {
             binance = new Binance();
             binance.options({
                 APIKEY: apiKey,
-                APISECRET: secretKey,
-                baseURL: binance_constants_1.BINANCE_FUTURE_BASE_URL_WITH_PROXY
+                APISECRET: secretKey
             });
             return await action(binance);
         }
