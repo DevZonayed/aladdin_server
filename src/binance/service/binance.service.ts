@@ -9,8 +9,10 @@ export class BinanceService {
 
     async checkBalance(apiKey: string, secretKey: string) {
         return await this.binanceApiHandler(apiKey, secretKey, async (binance) => {
-            let balances = await binance.futuresBalance() || [];
-            console.warn("balances", balances);
+            let balances = await binance.futuresBalance();
+            if (balances.code || Array.isArray(balances)) {
+                throw new Error(balances.msg);
+            }
             let usdtBalance = balances?.filter((b) => b?.asset === "USDT")[0];
             return usdtBalance ? usdtBalance.balance : 0;
         });
