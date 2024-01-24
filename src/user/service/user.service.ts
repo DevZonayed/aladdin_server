@@ -131,6 +131,7 @@ export class UserService {
         data,
       );
     } catch (error) {
+      console.error(error);
       return createApiResponse(
         HttpStatus.BAD_REQUEST,
         FAIELD_RESPONSE,

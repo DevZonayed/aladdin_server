@@ -82,6 +82,7 @@ let UserService = class UserService {
             return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.DATA_FOUND, data);
         }
         catch (error) {
+            console.error(error);
             return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, message_response_1.FAIELD_RESPONSE, message_response_1.SOMETHING_WENT_WRONG, error.message);
         }
     }
