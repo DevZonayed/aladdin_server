@@ -39,6 +39,6 @@ export function getDefaultDbConnectionString(): string {
   const dbName = config.get(DB_NAME) || 'test';
 
   const connectionString = `${mongoUriPrefix}://${authPart}${hostPart}${portPart}/${dbName}?${formattedOptions}`;
-
+  console.log(connectionString)
   return connectionString;
 }
