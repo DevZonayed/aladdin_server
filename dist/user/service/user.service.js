@@ -18,14 +18,16 @@ const jwt_1 = require("@nestjs/jwt");
 const mongoose_1 = require("@nestjs/mongoose");
 const bcrypt = require("bcrypt");
 const mongoose_2 = require("mongoose");
+const binance_service_1 = require("../../binance/service/binance.service");
 const update_user_credentials_dto_1 = require("../dto/update-user-credentials.dto");
 const create_api_response_1 = require("../../common/constants/create-api.response");
 const message_response_1 = require("../../common/constants/message.response");
 const user_entity_1 = require("../entities/user.entity");
 let UserService = class UserService {
-    constructor(userModel, jwtService) {
+    constructor(userModel, jwtService, binanceService) {
         this.userModel = userModel;
         this.jwtService = jwtService;
+        this.binanceService = binanceService;
     }
     async create(createUserDto) {
     }
@@ -70,13 +72,17 @@ let UserService = class UserService {
                     throw new Error(`Invalid credentials of ${key}`);
                 }
             });
+            const result = await this.binanceService.checkBalance(updateBinanceCredentialsDto.apiKey, updateBinanceCredentialsDto.apiSecret);
+            if (!result) {
+                throw new Error(message_response_1.INVALID_BINANCE_CREDENTIALS);
+            }
             const data = await this.userModel
                 .findByIdAndUpdate(id, { binanceCredentials: updateBinanceCredentialsDto }, { new: true })
                 .exec();
             return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.DATA_FOUND, data);
         }
         catch (error) {
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, message_response_1.FAIELD_RESPONSE, message_response_1.SOMETHING_WENT_WRONG, error);
+            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, message_response_1.FAIELD_RESPONSE, message_response_1.SOMETHING_WENT_WRONG, error.message);
         }
     }
     async subscribeToStrategy(userId, strategyId) {
@@ -228,6 +234,7 @@ exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(user_entity_1.User.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        binance_service_1.BinanceService])
 ], UserService);
 //# sourceMappingURL=user.service.js.map

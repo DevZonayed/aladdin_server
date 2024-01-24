@@ -41,6 +41,7 @@
     "express-session": "^1.17.3",
     "mongoose": "^8.0.3",
     "nestjs-joi": "^1.10.0",
+    "node-binance-api": "^0.13.1",
     "nodemailer": "^6.9.7",
     "passport": "^0.7.0",
     "passport-apple": "^2.0.2",

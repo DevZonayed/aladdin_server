@@ -20,3 +20,4 @@ export const YOU_ARE_ALREADY_SUBSCRIBED_TO_THIS_STRATEGY = 'You are already subs
 export const YOU_ARE_NOT_SUBSCRIBED_TO_THIS_STRATEGY = 'You are not subscribed to this strategy';
 export const STRATEGY_SUBSCRIBED_SUCCESS = 'Strategy subscribed successfully';
 export const STRATEGY_UNSUBSCRIBED_SUCCESS = 'Strategy unsubscribed successfully';
+export const INVALID_BINANCE_CREDENTIALS = 'Invalid Binance Credentials';

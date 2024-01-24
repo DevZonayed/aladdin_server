@@ -1,6 +1,5 @@
+import BinanceType from 'node-binance-api';
 export declare class BinanceService {
-    BaseUrl: string;
-    constructor();
-    checkBalance(apiKey: string, secretKey: string): Promise<import("axios").AxiosResponse<any, any>>;
-    private signatureGenerator;
+    checkBalance(apiKey: string, secretKey: string): Promise<any>;
+    binanceApiHandler(apiKey: string, secretKey: string, action: (binance: BinanceType) => Promise<any>): Promise<any>;
 }

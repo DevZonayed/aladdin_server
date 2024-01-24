@@ -25,6 +25,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Model, Types } from 'mongoose';
+import { BinanceService } from 'src/binance/service/binance.service';
 import { UpdateUserCredentialsDto } from 'src/user/dto/update-user-credentials.dto';
 import { CreateSystemAdministratorDto } from '../../auth/dto/create-system-administrator.dto';
 import { UserLoginDto } from '../../auth/dto/user-login.dto';
@@ -34,7 +35,8 @@ import { User } from '../entities/user.entity';
 export declare class UserService {
     private readonly userModel;
     private jwtService;
-    constructor(userModel: Model<User>, jwtService: JwtService);
+    private readonly binanceService;
+    constructor(userModel: Model<User>, jwtService: JwtService, binanceService: BinanceService);
     create(createUserDto: CreateUserDto): Promise<void>;
     createSystemAdministrator(createSystemAdministratorDto: CreateSystemAdministratorDto): Promise<{
         statusCode: HttpStatus;

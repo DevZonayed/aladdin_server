@@ -1,32 +1,41 @@
 import { Injectable } from '@nestjs/common';
-import axios from 'axios';
-import * as crypto from 'crypto';
-import { BINANCE_BASE_API_URL, BINANCE_MODE, BINANCE_TEST_BASE_API_URL } from '../constants/binance.constants';
+import BinanceType from 'node-binance-api';
+import { INVALID_BINANCE_CREDENTIALS } from 'src/common/constants';
+const Binance = require('node-binance-api');
+
 
 @Injectable()
 export class BinanceService {
-    BaseUrl: string
-    constructor() {
-        this.BaseUrl = BINANCE_MODE === "dev" ? BINANCE_TEST_BASE_API_URL : BINANCE_BASE_API_URL;
-    }
 
     async checkBalance(apiKey: string, secretKey: string) {
-        const timestamp = new Date().getTime();
-        const queryString = `timestamp=${timestamp}`;
-        const signature = this.signatureGenerator(secretKey, queryString);
-        const url = `${this.BaseUrl}/v3/account?${queryString}&signature=${signature}`;
-        const options = {
-            headers: {
-                'X-MBX-APIKEY': apiKey,
-            },
-        };
-        return await axios.get(url, options);
+        return await this.binanceApiHandler(apiKey, secretKey, async (binance) => {
+            let balances = await binance.futuresBalance() || [];
+            let usdtBalance = balances?.filter((b) => b?.asset === "USDT")[0];
+            return usdtBalance ? usdtBalance.balance : 0;
+        });
     }
 
-    private signatureGenerator(secretKey: string, queryString: string) {
-        return crypto
-            .createHmac('sha256', secretKey)
-            .update(queryString)
-            .digest('hex');
+
+
+    async binanceApiHandler(apiKey: string, secretKey: string, action: (binance: BinanceType) => Promise<any>) {
+        if (!apiKey || !secretKey) {
+            throw new Error(INVALID_BINANCE_CREDENTIALS);
+        }
+        let binance = null;
+        try {
+            binance = new Binance();
+            binance.options({
+                APIKEY: apiKey,
+                APISECRET: secretKey
+            });
+            return await action(binance);
+        } catch (err) {
+            throw err;
+        } finally {
+            binance = null;
+        }
     }
+
+
+
 }

@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model, Types } from 'mongoose';
+import { BinanceService } from 'src/binance/service/binance.service';
 import { UpdateUserCredentialsDto } from 'src/user/dto/update-user-credentials.dto';
 import { CreateSystemAdministratorDto } from '../../auth/dto/create-system-administrator.dto';
 import { UserLoginDto } from '../../auth/dto/user-login.dto';
@@ -11,6 +12,7 @@ import {
   AN_ERROR_OCCURED_WHILE_SAVING_DATA,
   DATA_FOUND,
   FAIELD_RESPONSE,
+  INVALID_BINANCE_CREDENTIALS,
   INVALID_PASSWORD,
   SOMETHING_WENT_WRONG,
   STRATEGY_SUBSCRIBED_SUCCESS,
@@ -22,7 +24,7 @@ import {
   USER_MAIL_NOT_EXIST,
   USER_NOT_FOUND,
   YOU_ARE_ALREADY_SUBSCRIBED_TO_THIS_STRATEGY,
-  YOU_ARE_NOT_SUBSCRIBED_TO_THIS_STRATEGY,
+  YOU_ARE_NOT_SUBSCRIBED_TO_THIS_STRATEGY
 } from '../../common/constants/message.response';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -33,6 +35,7 @@ export class UserService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private jwtService: JwtService,
+    private readonly binanceService: BinanceService
   ) { }
 
   async create(createUserDto: CreateUserDto) {
@@ -112,6 +115,12 @@ export class UserService {
         }
       });
 
+      // Check Token validation
+      const result = await this.binanceService.checkBalance(updateBinanceCredentialsDto.apiKey, updateBinanceCredentialsDto.apiSecret);
+      if (!result) {
+        throw new Error(INVALID_BINANCE_CREDENTIALS);
+      }
+
       const data = await this.userModel
         .findByIdAndUpdate(id, { binanceCredentials: updateBinanceCredentialsDto }, { new: true })
         .exec();
@@ -126,7 +135,7 @@ export class UserService {
         HttpStatus.BAD_REQUEST,
         FAIELD_RESPONSE,
         SOMETHING_WENT_WRONG,
-        error,
+        error.message,
       );
     }
   }
