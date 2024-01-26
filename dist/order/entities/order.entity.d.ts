@@ -30,6 +30,7 @@ export declare class Order extends Document {
     userId: Types.ObjectId;
     strategyId: Types.ObjectId;
     copyOrderId: string;
+    binanceOrderId: string;
     createdBy: CreatedByEnum;
     isRootOrder: boolean;
     closedBy: ClosedByEnum;
@@ -37,10 +38,9 @@ export declare class Order extends Document {
     entryPrice: number;
     orderQty: number;
     leverage: number;
-    isIsolated: boolean;
+    isolated: boolean;
     status: StatusEnum;
     closeReason: string;
-    modifications: Order[];
 }
 export declare const OrderSchema: import("mongoose").Schema<Order, import("mongoose").Model<Order, any, any, any, Document<unknown, any, Order> & Order & {
     _id: Types.ObjectId;

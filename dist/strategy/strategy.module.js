@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StrategyModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const binance_module_1 = require("../binance/binance.module");
 const user_module_1 = require("../user/user.module");
 const strategy_controller_1 = require("./controller/strategy.controller");
 const strategy_entity_1 = require("./entities/strategy.entity");
@@ -23,6 +24,7 @@ exports.StrategyModule = StrategyModule = __decorate([
                 { name: 'Strategy', schema: strategy_entity_1.StrategySchema },
             ]),
             user_module_1.UserModule,
+            binance_module_1.BinanceModule
         ],
         controllers: [strategy_controller_1.StrategyController],
         providers: [strategy_service_1.StrategyService],

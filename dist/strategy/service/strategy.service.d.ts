@@ -25,9 +25,10 @@
 import { HttpStatus } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { BinanceService } from 'src/binance/service/binance.service';
+import { SortBy } from 'src/common/enum/enum-sort-by';
 import { UserService } from 'src/user/service/user.service';
-import { SortBy } from '../../common/enum/enum-sort-by';
 import { CreateStrategyDto } from '../dto/create-strategy.dto';
+import { OrderWebHookDto } from '../dto/order_webhook-dto';
 import { UpdateStrategyDto } from '../dto/update-strategy.dto';
 import { Strategy } from '../entities/strategy.entity';
 export declare class StrategyService {
@@ -60,7 +61,7 @@ export declare class StrategyService {
         message: string;
         payload: any;
     }>;
-    handleWebHook(endPoint: string): Promise<{
+    handleWebHook(endPoint: string, order: OrderWebHookDto): Promise<any[] | {
         statusCode: HttpStatus;
         response: string;
         message: string;

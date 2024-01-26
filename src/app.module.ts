@@ -1,5 +1,6 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HttpModule } from '@nestjs/axios';
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -24,11 +25,12 @@ import { UserModule } from './user/user.module';
     MongooseModule.forRoot(getDefaultDbConnectionString()),
     MailerModule.forRoot(getDefaultMailConnectionConfig()),
     ThrottlerModule.forRoot(getThroTTLconfig()),
+    CacheModule.register({ isGlobal: true, ttl: 43200000 }),
     CoreConfigModule,
-    BinanceModule,
     AuthModule,
     UserModule,
     JwtModule,
+    BinanceModule,
     StrategyModule
   ],
   controllers: [AppController],

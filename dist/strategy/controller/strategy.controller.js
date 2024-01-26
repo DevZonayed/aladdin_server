@@ -22,14 +22,15 @@ const enum_1 = require("../../common/enum");
 const enum_sort_by_1 = require("../../common/enum/enum-sort-by");
 const guard_1 = require("../../common/guard");
 const create_strategy_dto_1 = require("../dto/create-strategy.dto");
+const order_webhook_dto_1 = require("../dto/order_webhook-dto");
 const update_strategy_dto_1 = require("../dto/update-strategy.dto");
 const strategy_service_1 = require("../service/strategy.service");
 let StrategyController = class StrategyController {
     constructor(StrategyService) {
         this.StrategyService = StrategyService;
     }
-    async handleWebhook(endpoint) {
-        return this.StrategyService.handleWebHook(endpoint);
+    async handleWebhook(endpoint, orderWebHookDto) {
+        return await this.StrategyService.handleWebHook(endpoint, orderWebHookDto);
     }
     async create(createStrategyDto, requestData) {
         let user = requestData["user"];
@@ -56,8 +57,9 @@ exports.StrategyController = StrategyController;
 __decorate([
     (0, common_1.Post)(":endpoint"),
     __param(0, (0, common_1.Param)('endpoint')),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, order_webhook_dto_1.OrderWebHookDto]),
     __metadata("design:returntype", Promise)
 ], StrategyController.prototype, "handleWebhook", null);
 __decorate([
@@ -67,7 +69,8 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_strategy_dto_1.CreateStrategyDto, Object]),
+    __metadata("design:paramtypes", [create_strategy_dto_1.CreateStrategyDto,
+        Request]),
     __metadata("design:returntype", Promise)
 ], StrategyController.prototype, "create", null);
 __decorate([

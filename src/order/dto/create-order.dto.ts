@@ -1,82 +1,59 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { OrderStatus } from '../../common/enum/enum-order-status';
-import { PaymentAccountType } from '../../common/enum/enum-payment-account-type';
-import { PaymentStatus } from '../../common/enum/enum-payment-status';
 
 export class CreateOrderDto {
   @ApiProperty({
     type: String,
-    description: 'ID of the user who placed the order',
-    example: '60c6e2349a0cdc40f8b5f4d2',
+    description: 'Name of the symbol that you want to trade',
+    example: 'SOLUSDT',
     required: true,
   })
-  readonly orderBy: string;
+  readonly symbol: string;
 
   @ApiProperty({
     type: String,
-    description: 'ID of the surprised bucket in the order',
-    example: '60c6e2349a0cdc40f8b5f4d3',
+    description: 'Position side of your order',
+    example: 'LONG',
     required: true,
   })
-  readonly bucketName: string;
+  readonly side: string;
 
   @ApiProperty({
     type: String,
-    description: 'ID of the restaurant for the order',
-    example: '60c6e2349a0cdc40f8b5f4d4',
+    description: 'Order type of your position',
+    example: 'LIMIT',
     required: true,
   })
-  readonly restaurant: string;
+  readonly type: string;
 
   @ApiProperty({
     type: Number,
-    description: 'Quantity of items in the order',
-    example: 2,
+    description: 'Quantity of your order assets',
+    example: 5,
+    required: true,
   })
-  readonly qty: number;
+  readonly quantity: number;
 
   @ApiProperty({
     type: Number,
-    description: 'Unit amount for each item',
-    example: 10,
+    description: 'Limit Price of your order',
+    example: 100,
+    required: true,
   })
-  readonly amount: number;
+  readonly price: number;
 
   @ApiProperty({
-    type: String,
-    description: 'Type of payment account',
-    enum: PaymentAccountType,
-    example: PaymentAccountType.STRIPE,
+    type: Number,
+    description: 'Leverage of your order',
+    example: 5,
+    required: true,
   })
-  readonly paymentAccountType: string;
-
-  @ApiProperty({
-    type: String,
-    description: 'Payment status of the order',
-    enum: PaymentStatus,
-    example: PaymentStatus.PENDING,
-  })
-  readonly paymentStatus: string;
-
-  @ApiProperty({
-    type: String,
-    description: 'Status of the order',
-    enum: OrderStatus,
-    example: OrderStatus.SUCCESS,
-  })
-  readonly orderStatus: string;
+  readonly leverage: number;
 
   @ApiProperty({
     type: Boolean,
-    description: 'Whether the order is refundable',
-    example: true,
+    description: 'Is the leverage should isolated or not',
+    example: false,
+    required: true,
   })
-  readonly isRefundable: boolean;
-
-  @ApiProperty({
-    type: String,
-    description: 'Transaction ID for the order',
-    example: 'txn_12345',
-  })
-  readonly transactionID: string;
+  readonly isolated: boolean;
 }

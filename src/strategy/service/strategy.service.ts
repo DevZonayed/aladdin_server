@@ -2,21 +2,14 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BinanceService } from 'src/binance/service/binance.service';
+import { DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, SOMETHING_WENT_WRONG, STRATEGY_CREATED_FAILED, STRATEGY_CREATED_SUCCESSFULLY, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
+import { SortBy } from 'src/common/enum/enum-sort-by';
 import { UserService } from 'src/user/service/user.service';
-import {
-  DATA_FOUND,
-  FAIELD_RESPONSE,
-  NO_DATA_FOUND,
-  SOMETHING_WENT_WRONG,
-  STRATEGY_CREATED_FAILED,
-  STRATEGY_CREATED_SUCCESSFULLY,
-  SUCCESS_RESPONSE
-} from '../../common/constants';
-import { createApiResponse } from '../../common/constants/create-api.response';
-import { SortBy } from '../../common/enum/enum-sort-by';
 import { CreateStrategyDto } from '../dto/create-strategy.dto';
+import { OrderWebHookDto } from '../dto/order_webhook-dto';
 import { UpdateStrategyDto } from '../dto/update-strategy.dto';
 import { Strategy } from '../entities/strategy.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class StrategyService {
@@ -220,33 +213,29 @@ export class StrategyService {
     }
   }
 
-  async handleWebHook(endPoint: string) {
+  async handleWebHook(endPoint: string, order: OrderWebHookDto) {
     try {
-      const strategy = await this.StrategyModel.findOne({ apiSlug: endPoint }).exec();
+      let strategy = await this.StrategyModel.findOne({ apiSlug: endPoint })
       if (!strategy) {
         return createApiResponse(
           HttpStatus.NOT_FOUND,
           FAIELD_RESPONSE,
           NO_DATA_FOUND,
+          [],
         );
       }
 
-      // Fatch All Credentials
-      let credentials: any = await this.userService.getCredentialsOfStrategy(strategy._id);
-
-      if (credentials[0]?.binanceCredentials) {
-        let { apiKey, apiSecret } = credentials[0]?.binanceCredentials;
-        let balence = await this.binanceService.checkBalance(apiKey, apiSecret);
-
+      const credentials: User[] = await this.userService.getCredentialsOfStrategy(strategy._id)
+      if (credentials.length === 0) {
         return createApiResponse(
-          HttpStatus.ACCEPTED,
-          SUCCESS_RESPONSE,
-          "Strategy Webhook Received",
-          balence,
+          HttpStatus.NOT_FOUND,
+          FAIELD_RESPONSE,
+          NO_DATA_FOUND,
+          [],
         );
       }
 
-
+      return await this.binanceService.createStrategyOrders(strategy, credentials, order)
 
       return createApiResponse(
         HttpStatus.ACCEPTED,
@@ -256,7 +245,6 @@ export class StrategyService {
       );
 
     } catch (err) {
-      console.log(err)
       return createApiResponse(
         HttpStatus.INTERNAL_SERVER_ERROR,
         FAIELD_RESPONSE,

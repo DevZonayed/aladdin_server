@@ -13,6 +13,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
+const cache_manager_1 = require("@nestjs/cache-manager");
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const mongoose_1 = require("@nestjs/mongoose");
@@ -22,10 +23,12 @@ const binance_service_1 = require("../../binance/service/binance.service");
 const update_user_credentials_dto_1 = require("../dto/update-user-credentials.dto");
 const create_api_response_1 = require("../../common/constants/create-api.response");
 const message_response_1 = require("../../common/constants/message.response");
+const user_cache_keys_1 = require("../cacheKeys/user.cache.keys");
 const user_entity_1 = require("../entities/user.entity");
 let UserService = class UserService {
-    constructor(userModel, jwtService, binanceService) {
+    constructor(userModel, cacheManager, jwtService, binanceService) {
         this.userModel = userModel;
+        this.cacheManager = cacheManager;
         this.jwtService = jwtService;
         this.binanceService = binanceService;
     }
@@ -63,6 +66,33 @@ let UserService = class UserService {
     remove(id) {
         return `This action removes a #${id} user`;
     }
+    async getBinanceBalance(id, apiKey = null, apiSecret = null) {
+        try {
+            let cacheBalanceKey = user_cache_keys_1.USER_BALANCE_CACHE_KEY + id.toString();
+            if (!!apiKey && !!apiSecret) {
+                let { balance, isTestMode } = await this.cacheManager.get(cacheBalanceKey);
+                if (balance) {
+                    return { balance, isTestMode };
+                }
+            }
+            const user = await this.userModel.findById(id).select(["binanceCredentials", "_id"]);
+            if (user) {
+                let credentials = user.binanceCredentials;
+                const { balance, isTestMode } = await this.binanceService.checkBalance(credentials.apiKey, credentials.apiSecret);
+                if (balance) {
+                    await this.cacheManager.set(cacheBalanceKey, balance, 43200000);
+                    await this.cacheManager.set(cacheBalanceKey, { balance, isTestMode });
+                    return { balance, isTestMode };
+                }
+                else {
+                    throw new Error(message_response_1.INVALID_BINANCE_CREDENTIALS);
+                }
+            }
+        }
+        catch (error) {
+            throw new Error(error.message);
+        }
+    }
     async updateBinanceCredentials(id, updateBinanceCredentialsDto) {
         try {
             let credentialsKey = Object.keys(updateBinanceCredentialsDto);
@@ -72,17 +102,16 @@ let UserService = class UserService {
                     throw new Error(`Invalid credentials of ${key}`);
                 }
             });
-            const result = await this.binanceService.checkBalance(updateBinanceCredentialsDto.apiKey, updateBinanceCredentialsDto.apiSecret);
-            if (!result) {
+            const { balance, isTestMode } = await this.getBinanceBalance(id, updateBinanceCredentialsDto.apiKey, updateBinanceCredentialsDto.apiSecret);
+            if (!balance) {
                 throw new Error(message_response_1.INVALID_BINANCE_CREDENTIALS);
             }
             const data = await this.userModel
-                .findByIdAndUpdate(id, { binanceCredentials: updateBinanceCredentialsDto }, { new: true })
+                .findByIdAndUpdate(id, { binanceCredentials: { ...updateBinanceCredentialsDto, isTestMode } }, { new: true })
                 .exec();
             return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.DATA_FOUND, data);
         }
         catch (error) {
-            console.error(error);
             return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, message_response_1.FAIELD_RESPONSE, message_response_1.SOMETHING_WENT_WRONG, error.message);
         }
     }
@@ -149,7 +178,7 @@ let UserService = class UserService {
                 {
                     $project: {
                         _id: 1,
-                        binanceCredentials: 1
+                        binanceCredentials: 1,
                     }
                 }
             ];
@@ -234,8 +263,9 @@ exports.UserService = UserService;
 exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(user_entity_1.User.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model,
-        jwt_1.JwtService,
+    __param(1, (0, common_1.Inject)(cache_manager_1.CACHE_MANAGER)),
+    __param(3, (0, common_1.Inject)((0, common_1.forwardRef)(() => binance_service_1.BinanceService))),
+    __metadata("design:paramtypes", [mongoose_2.Model, Object, jwt_1.JwtService,
         binance_service_1.BinanceService])
 ], UserService);
 //# sourceMappingURL=user.service.js.map

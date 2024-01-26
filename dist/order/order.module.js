@@ -9,7 +9,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
-const order_controller_1 = require("./controller/order.controller");
 const order_entity_1 = require("./entities/order.entity");
 const order_service_1 = require("./service/order.service");
 let OrderModule = class OrderModule {
@@ -20,8 +19,9 @@ exports.OrderModule = OrderModule = __decorate([
         imports: [
             mongoose_1.MongooseModule.forFeature([{ name: 'Order', schema: order_entity_1.OrderSchema }]),
         ],
-        controllers: [order_controller_1.OrderController],
+        controllers: [],
         providers: [order_service_1.OrderService],
+        exports: [order_service_1.OrderService]
     })
 ], OrderModule);
 //# sourceMappingURL=order.module.js.map

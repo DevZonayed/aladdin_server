@@ -13,13 +13,13 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
-import { Roles } from '../../common/decorators';
-import { DataSearchDecorator } from '../../common/decorators/data-search.decorator';
-import { UserRole } from '../../common/enum';
-import { SortBy } from '../../common/enum/enum-sort-by';
-import { AuthGuard, RolesGuard } from '../../common/guard';
+import { Roles } from 'src/common/decorators';
+import { DataSearchDecorator } from 'src/common/decorators/data-search.decorator';
+import { UserRole } from 'src/common/enum';
+import { SortBy } from 'src/common/enum/enum-sort-by';
+import { AuthGuard, RolesGuard } from 'src/common/guard';
 import { CreateStrategyDto } from '../dto/create-strategy.dto';
+import { OrderWebHookDto } from '../dto/order_webhook-dto';
 import { UpdateStrategyDto } from '../dto/update-strategy.dto';
 import { StrategyService } from '../service/strategy.service';
 
@@ -32,8 +32,8 @@ export class StrategyController {
 
 
   @Post(":endpoint")
-  async handleWebhook(@Param('endpoint') endpoint: string,) {
-    return this.StrategyService.handleWebHook(endpoint);
+  async handleWebhook(@Param('endpoint') endpoint: string, @Body() orderWebHookDto: OrderWebHookDto) {
+    return await this.StrategyService.handleWebHook(endpoint, orderWebHookDto);
   }
 
 

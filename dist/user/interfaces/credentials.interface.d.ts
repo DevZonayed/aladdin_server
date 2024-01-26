@@ -3,4 +3,5 @@ export interface CredentialsInterface<T extends Exchanges> {
     exchange: T;
     apiKey: string;
     apiSecret: string;
+    isTestMode: Boolean;
 }

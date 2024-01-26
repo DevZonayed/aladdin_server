@@ -1,0 +1,1 @@
+export declare const USER_BALANCE_CACHE_KEY = "USER_BALANCE_CACHE_KEY";

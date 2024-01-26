@@ -11,96 +11,70 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateOrderDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
-const enum_order_status_1 = require("../../common/enum/enum-order-status");
-const enum_payment_account_type_1 = require("../../common/enum/enum-payment-account-type");
-const enum_payment_status_1 = require("../../common/enum/enum-payment-status");
 class CreateOrderDto {
 }
 exports.CreateOrderDto = CreateOrderDto;
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,
-        description: 'ID of the user who placed the order',
-        example: '60c6e2349a0cdc40f8b5f4d2',
+        description: 'Name of the symbol that you want to trade',
+        example: 'SOLUSDT',
         required: true,
     }),
     __metadata("design:type", String)
-], CreateOrderDto.prototype, "orderBy", void 0);
+], CreateOrderDto.prototype, "symbol", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,
-        description: 'ID of the surprised bucket in the order',
-        example: '60c6e2349a0cdc40f8b5f4d3',
+        description: 'Position side of your order',
+        example: 'LONG',
         required: true,
     }),
     __metadata("design:type", String)
-], CreateOrderDto.prototype, "bucketName", void 0);
+], CreateOrderDto.prototype, "side", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,
-        description: 'ID of the restaurant for the order',
-        example: '60c6e2349a0cdc40f8b5f4d4',
+        description: 'Order type of your position',
+        example: 'LIMIT',
         required: true,
     }),
     __metadata("design:type", String)
-], CreateOrderDto.prototype, "restaurant", void 0);
+], CreateOrderDto.prototype, "type", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: Number,
-        description: 'Quantity of items in the order',
-        example: 2,
+        description: 'Quantity of your order assets',
+        example: 5,
+        required: true,
     }),
     __metadata("design:type", Number)
-], CreateOrderDto.prototype, "qty", void 0);
+], CreateOrderDto.prototype, "quantity", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: Number,
-        description: 'Unit amount for each item',
-        example: 10,
+        description: 'Limit Price of your order',
+        example: 100,
+        required: true,
     }),
     __metadata("design:type", Number)
-], CreateOrderDto.prototype, "amount", void 0);
+], CreateOrderDto.prototype, "price", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
-        type: String,
-        description: 'Type of payment account',
-        enum: enum_payment_account_type_1.PaymentAccountType,
-        example: enum_payment_account_type_1.PaymentAccountType.STRIPE,
+        type: Number,
+        description: 'Leverage of your order',
+        example: 5,
+        required: true,
     }),
-    __metadata("design:type", String)
-], CreateOrderDto.prototype, "paymentAccountType", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        type: String,
-        description: 'Payment status of the order',
-        enum: enum_payment_status_1.PaymentStatus,
-        example: enum_payment_status_1.PaymentStatus.PENDING,
-    }),
-    __metadata("design:type", String)
-], CreateOrderDto.prototype, "paymentStatus", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        type: String,
-        description: 'Status of the order',
-        enum: enum_order_status_1.OrderStatus,
-        example: enum_order_status_1.OrderStatus.SUCCESS,
-    }),
-    __metadata("design:type", String)
-], CreateOrderDto.prototype, "orderStatus", void 0);
+    __metadata("design:type", Number)
+], CreateOrderDto.prototype, "leverage", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: Boolean,
-        description: 'Whether the order is refundable',
-        example: true,
+        description: 'Is the leverage should isolated or not',
+        example: false,
+        required: true,
     }),
     __metadata("design:type", Boolean)
-], CreateOrderDto.prototype, "isRefundable", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
-        type: String,
-        description: 'Transaction ID for the order',
-        example: 'txn_12345',
-    }),
-    __metadata("design:type", String)
-], CreateOrderDto.prototype, "transactionID", void 0);
+], CreateOrderDto.prototype, "isolated", void 0);
 //# sourceMappingURL=create-order.dto.js.map

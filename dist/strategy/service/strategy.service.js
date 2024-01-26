@@ -17,9 +17,8 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const binance_service_1 = require("../../binance/service/binance.service");
-const user_service_1 = require("../../user/service/user.service");
 const constants_1 = require("../../common/constants");
-const create_api_response_1 = require("../../common/constants/create-api.response");
+const user_service_1 = require("../../user/service/user.service");
 const strategy_entity_1 = require("../entities/strategy.entity");
 let StrategyService = class StrategyService {
     constructor(StrategyModel, userService, binanceService) {
@@ -31,10 +30,10 @@ let StrategyService = class StrategyService {
         try {
             const createStrategy = new this.StrategyModel(createStrategyDto);
             await createStrategy.save();
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.CREATED, constants_1.SUCCESS_RESPONSE, constants_1.STRATEGY_CREATED_SUCCESSFULLY, createStrategy);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.CREATED, constants_1.SUCCESS_RESPONSE, constants_1.STRATEGY_CREATED_SUCCESSFULLY, createStrategy);
         }
         catch (err) {
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.CONFLICT, constants_1.FAIELD_RESPONSE, constants_1.STRATEGY_CREATED_FAILED, err.message);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.CONFLICT, constants_1.FAIELD_RESPONSE, constants_1.STRATEGY_CREATED_FAILED, err.message);
         }
     }
     async findAll(page, limit, order, sort, search, startDate, endDate) {
@@ -75,7 +74,7 @@ let StrategyService = class StrategyService {
             const nextPage = hasNextPage ? Number(page) + 1 : null;
             const prevPage = hasPrevPage ? Number(page) - 1 : null;
             if (data.length > 0) {
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, {
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, {
                     data,
                     pagination: {
                         total,
@@ -89,25 +88,25 @@ let StrategyService = class StrategyService {
                 });
             }
             else {
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.NO_DATA_FOUND);
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.NO_DATA_FOUND);
             }
         }
         catch (error) {
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
     async findOne(id) {
         try {
             const data = await this.StrategyModel.findById(id).exec();
             if (data) {
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);
             }
             else {
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.SUCCESS_RESPONSE, constants_1.NO_DATA_FOUND);
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.SUCCESS_RESPONSE, constants_1.NO_DATA_FOUND);
             }
         }
         catch (error) {
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
     update(id, updateStrategyDto) {
@@ -115,41 +114,39 @@ let StrategyService = class StrategyService {
             const data = this.StrategyModel
                 .findByIdAndUpdate(id, updateStrategyDto, { new: true })
                 .exec();
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);
         }
         catch (error) {
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
     async remove(id) {
         try {
             const data = await this.StrategyModel.findByIdAndDelete(id).exec();
             if (data) {
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);
             }
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND);
         }
         catch (error) {
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
-    async handleWebHook(endPoint) {
+    async handleWebHook(endPoint, order) {
         try {
-            const strategy = await this.StrategyModel.findOne({ apiSlug: endPoint }).exec();
+            let strategy = await this.StrategyModel.findOne({ apiSlug: endPoint });
             if (!strategy) {
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND);
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND, []);
             }
-            let credentials = await this.userService.getCredentialsOfStrategy(strategy._id);
-            if (credentials[0]?.binanceCredentials) {
-                let { apiKey, apiSecret } = credentials[0]?.binanceCredentials;
-                let balence = await this.binanceService.checkBalance(apiKey, apiSecret);
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Strategy Webhook Received", balence);
+            const credentials = await this.userService.getCredentialsOfStrategy(strategy._id);
+            if (credentials.length === 0) {
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND, []);
             }
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Strategy Webhook Received", []);
+            return await this.binanceService.createStrategyOrders(strategy, credentials, order);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Strategy Webhook Received", []);
         }
         catch (err) {
-            console.log(err);
-            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.INTERNAL_SERVER_ERROR, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, err.message);
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.INTERNAL_SERVER_ERROR, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, err.message);
         }
     }
 };

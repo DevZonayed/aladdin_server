@@ -1,12 +1,12 @@
-import { Request } from 'express';
-import { SortBy } from '../../common/enum/enum-sort-by';
+import { SortBy } from 'src/common/enum/enum-sort-by';
 import { CreateStrategyDto } from '../dto/create-strategy.dto';
+import { OrderWebHookDto } from '../dto/order_webhook-dto';
 import { UpdateStrategyDto } from '../dto/update-strategy.dto';
 import { StrategyService } from '../service/strategy.service';
 export declare class StrategyController {
     private readonly StrategyService;
     constructor(StrategyService: StrategyService);
-    handleWebhook(endpoint: string): Promise<{
+    handleWebhook(endpoint: string, orderWebHookDto: OrderWebHookDto): Promise<any[] | {
         statusCode: import("@nestjs/common").HttpStatus;
         response: string;
         message: string;

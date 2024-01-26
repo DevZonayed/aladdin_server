@@ -31,6 +31,10 @@ __decorate([
     __metadata("design:type", String)
 ], Order.prototype, "copyOrderId", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: String, index: true }),
+    __metadata("design:type", String)
+], Order.prototype, "binanceOrderId", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], Order.prototype, "createdBy", void 0);
@@ -61,7 +65,7 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({ type: Boolean, required: true }),
     __metadata("design:type", Boolean)
-], Order.prototype, "isIsolated", void 0);
+], Order.prototype, "isolated", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
@@ -70,10 +74,6 @@ __decorate([
     (0, mongoose_1.Prop)({ type: String, required: true }),
     __metadata("design:type", String)
 ], Order.prototype, "closeReason", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: Order, }),
-    __metadata("design:type", Array)
-], Order.prototype, "modifications", void 0);
 exports.Order = Order = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true, versionKey: false })
 ], Order);

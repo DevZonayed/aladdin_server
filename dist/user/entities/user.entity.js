@@ -78,10 +78,6 @@ __decorate([
     __metadata("design:type", Array)
 ], User.prototype, "strategys", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: Object }),
-    __metadata("design:type", Object)
-], User.prototype, "binanceBalence", void 0);
-__decorate([
     (0, mongoose_1.Prop)({ type: String }),
     __metadata("design:type", String)
 ], User.prototype, "token", void 0);

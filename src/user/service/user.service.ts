@@ -1,7 +1,9 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { HttpStatus, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
+import { Cache } from 'cache-manager';
 import { Model, Types } from 'mongoose';
 import { BinanceService } from 'src/binance/service/binance.service';
 import { UpdateUserCredentialsDto } from 'src/user/dto/update-user-credentials.dto';
@@ -26,6 +28,7 @@ import {
   YOU_ARE_ALREADY_SUBSCRIBED_TO_THIS_STRATEGY,
   YOU_ARE_NOT_SUBSCRIBED_TO_THIS_STRATEGY
 } from '../../common/constants/message.response';
+import { USER_BALANCE_CACHE_KEY } from '../cacheKeys/user.cache.keys';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { User } from '../entities/user.entity';
@@ -34,8 +37,10 @@ import { User } from '../entities/user.entity';
 export class UserService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private jwtService: JwtService,
-    private readonly binanceService: BinanceService
+    @Inject(forwardRef(() => BinanceService)) private readonly binanceService: BinanceService,
+
   ) { }
 
   async create(createUserDto: CreateUserDto) {
@@ -102,6 +107,33 @@ export class UserService {
     return `This action removes a #${id} user`;
   }
 
+  async getBinanceBalance(id: Types.ObjectId | string, apiKey: string = null, apiSecret: string = null): Promise<{ balance: number | string, isTestMode: boolean }> {
+    try {
+      let cacheBalanceKey = USER_BALANCE_CACHE_KEY + id.toString()
+      if (!!apiKey && !!apiSecret) {
+        let { balance, isTestMode }: any = await this.cacheManager.get(cacheBalanceKey);
+        if (balance) {
+          return { balance, isTestMode };
+        }
+      }
+
+      const user = await this.userModel.findById(id).select(["binanceCredentials", "_id"]);
+      if (user) {
+        let credentials = user.binanceCredentials;
+        const { balance, isTestMode } = await this.binanceService.checkBalance(credentials.apiKey, credentials.apiSecret);
+        if (balance) {
+          await this.cacheManager.set(cacheBalanceKey, balance, 43200000);
+          await this.cacheManager.set(cacheBalanceKey, { balance, isTestMode })
+          return { balance, isTestMode }
+
+        } else {
+          throw new Error(INVALID_BINANCE_CREDENTIALS)
+        }
+      }
+    } catch (error) {
+      throw new Error(error.message)
+    }
+  }
 
   async updateBinanceCredentials(id: string, updateBinanceCredentialsDto: UpdateUserCredentialsDto) {
     try {
@@ -116,13 +148,13 @@ export class UserService {
       });
 
       // Check Token validation
-      const result = await this.binanceService.checkBalance(updateBinanceCredentialsDto.apiKey, updateBinanceCredentialsDto.apiSecret);
-      if (!result) {
+      const { balance, isTestMode } = await this.getBinanceBalance(id, updateBinanceCredentialsDto.apiKey, updateBinanceCredentialsDto.apiSecret);
+      if (!balance) {
         throw new Error(INVALID_BINANCE_CREDENTIALS);
       }
 
       const data = await this.userModel
-        .findByIdAndUpdate(id, { binanceCredentials: updateBinanceCredentialsDto }, { new: true })
+        .findByIdAndUpdate(id, { binanceCredentials: { ...updateBinanceCredentialsDto, isTestMode } }, { new: true })
         .exec();
       return createApiResponse(
         HttpStatus.OK,
@@ -131,7 +163,6 @@ export class UserService {
         data,
       );
     } catch (error) {
-      console.error(error);
       return createApiResponse(
         HttpStatus.BAD_REQUEST,
         FAIELD_RESPONSE,
@@ -234,7 +265,7 @@ export class UserService {
         {
           $project: {
             _id: 1,
-            binanceCredentials: 1
+            binanceCredentials: 1,
           }
         }
       ];

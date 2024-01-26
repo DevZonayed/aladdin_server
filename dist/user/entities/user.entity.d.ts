@@ -27,7 +27,6 @@ import { Exchanges } from 'src/common/enum/enum-exchanges';
 import { UserSigninBy } from '../../common/enum/enum-signin-by-social-id';
 import { UserRole } from '../../common/enum/enum-user-role';
 import { SentUserMailInterface } from '../../common/interface/sent-user-mail.interface';
-import { BalenceInterface } from '../interfaces/balence.interface';
 import { CredentialsInterface } from '../interfaces/credentials.interface';
 export declare class User extends Document {
     fullName: string;
@@ -45,7 +44,6 @@ export declare class User extends Document {
     binanceCredentials: CredentialsInterface<Exchanges.Binance>;
     bybitCredentials: CredentialsInterface<Exchanges.Bybit>;
     strategys: Types.ObjectId[];
-    binanceBalence: BalenceInterface<Exchanges.Binance>;
     token: string;
 }
 export declare const UserSchema: import("mongoose").Schema<User, import("mongoose").Model<User, any, any, any, Document<unknown, any, User> & User & {

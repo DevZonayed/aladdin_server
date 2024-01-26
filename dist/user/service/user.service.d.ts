@@ -24,6 +24,7 @@
 /// <reference types="mongoose/types/inferschematype" />
 import { HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Cache } from 'cache-manager';
 import { Model, Types } from 'mongoose';
 import { BinanceService } from 'src/binance/service/binance.service';
 import { UpdateUserCredentialsDto } from 'src/user/dto/update-user-credentials.dto';
@@ -34,9 +35,10 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { User } from '../entities/user.entity';
 export declare class UserService {
     private readonly userModel;
+    private cacheManager;
     private jwtService;
     private readonly binanceService;
-    constructor(userModel: Model<User>, jwtService: JwtService, binanceService: BinanceService);
+    constructor(userModel: Model<User>, cacheManager: Cache, jwtService: JwtService, binanceService: BinanceService);
     create(createUserDto: CreateUserDto): Promise<void>;
     createSystemAdministrator(createSystemAdministratorDto: CreateSystemAdministratorDto): Promise<{
         statusCode: HttpStatus;
@@ -63,6 +65,10 @@ export declare class UserService {
         _id: Types.ObjectId;
     }, {}, User, "findOneAndUpdate">;
     remove(id: number): string;
+    getBinanceBalance(id: Types.ObjectId | string, apiKey?: string, apiSecret?: string): Promise<{
+        balance: number | string;
+        isTestMode: boolean;
+    }>;
     updateBinanceCredentials(id: string, updateBinanceCredentialsDto: UpdateUserCredentialsDto): Promise<{
         statusCode: HttpStatus;
         response: string;

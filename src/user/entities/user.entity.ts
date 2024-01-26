@@ -4,7 +4,6 @@ import { Exchanges } from 'src/common/enum/enum-exchanges';
 import { UserSigninBy } from '../../common/enum/enum-signin-by-social-id';
 import { UserRole } from '../../common/enum/enum-user-role';
 import { SentUserMailInterface } from '../../common/interface/sent-user-mail.interface';
-import { BalenceInterface } from '../interfaces/balence.interface';
 import { CredentialsInterface } from '../interfaces/credentials.interface';
 
 @Schema({ timestamps: true, versionKey: false })
@@ -53,9 +52,6 @@ export class User extends Document {
 
   @Prop({ type: Types.ObjectId, ref: 'Strategy' })
   strategys: Types.ObjectId[];
-
-  @Prop({ type: Object })
-  binanceBalence: BalenceInterface<Exchanges.Binance>
 
   @Prop({ type: String })
   token: string;

@@ -1,4 +1,5 @@
 export declare const BINANCE_MODE: string;
+export declare const IS_BINANCE_TEST_MODE: boolean;
 export declare const PROXY_SERVER_URL = "https://aladdinai.io";
 export declare const BINANCE_BASE_URL = "https://api.binance.com";
 export declare const BINANCE_TEST_BASE_URL = "https://testnet.binance.vision";

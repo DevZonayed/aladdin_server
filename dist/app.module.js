@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const mailer_1 = require("@nestjs-modules/mailer");
 const axios_1 = require("@nestjs/axios");
+const cache_manager_1 = require("@nestjs/cache-manager");
 const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const mongoose_1 = require("@nestjs/mongoose");
@@ -36,11 +37,12 @@ exports.AppModule = AppModule = __decorate([
             mongoose_1.MongooseModule.forRoot((0, mongoose_connection_1.getDefaultDbConnectionString)()),
             mailer_1.MailerModule.forRoot((0, mail_connection_1.getDefaultMailConnectionConfig)()),
             throttler_1.ThrottlerModule.forRoot((0, throttle_config_1.getThroTTLconfig)()),
+            cache_manager_1.CacheModule.register({ isGlobal: true, ttl: 43200000 }),
             core_module_1.CoreConfigModule,
-            binance_module_1.BinanceModule,
             auth_module_1.AuthModule,
             user_module_1.UserModule,
             jwt_1.JwtModule,
+            binance_module_1.BinanceModule,
             strategy_module_1.StrategyModule
         ],
         controllers: [app_controller_1.AppController],

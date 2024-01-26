@@ -8,14 +8,15 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BinanceModule = void 0;
 const common_1 = require("@nestjs/common");
+const order_module_1 = require("../order/order.module");
+const user_module_1 = require("../user/user.module");
 const binance_service_1 = require("./service/binance.service");
 let BinanceModule = class BinanceModule {
 };
 exports.BinanceModule = BinanceModule;
 exports.BinanceModule = BinanceModule = __decorate([
-    (0, common_1.Global)(),
     (0, common_1.Module)({
-        imports: [],
+        imports: [order_module_1.OrderModule, (0, common_1.forwardRef)(() => user_module_1.UserModule)],
         controllers: [],
         providers: [binance_service_1.BinanceService],
         exports: [binance_service_1.BinanceService],

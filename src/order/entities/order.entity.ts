@@ -15,6 +15,9 @@ export class Order extends Document {
   @Prop({ type: String, index: true })
   copyOrderId: string;
 
+  @Prop({ type: String, index: true })
+  binanceOrderId: string;
+
   @Prop({ type: String, required: true })
   createdBy: CreatedByEnum;
 
@@ -37,7 +40,7 @@ export class Order extends Document {
   leverage: number;
 
   @Prop({ type: Boolean, required: true })
-  isIsolated: boolean;
+  isolated: boolean;
 
   @Prop({ type: String, required: true })
   status: StatusEnum
@@ -45,8 +48,8 @@ export class Order extends Document {
   @Prop({ type: String, required: true })
   closeReason: string;
 
-  @Prop({ type: Order, })
-  modifications: Order[];
+  // @Prop({ type: Order, })
+  // modifications: Order[];
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

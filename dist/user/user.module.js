@@ -9,6 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
+const binance_module_1 = require("../binance/binance.module");
 const module_1 = require("../common/module");
 const user_controller_1 = require("./controller/user.controller");
 const user_entity_1 = require("./entities/user.entity");
@@ -17,10 +18,12 @@ let UserModule = class UserModule {
 };
 exports.UserModule = UserModule;
 exports.UserModule = UserModule = __decorate([
+    (0, common_1.Global)(),
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([{ name: 'User', schema: user_entity_1.UserSchema }]),
             module_1.UserProfileImageUploadModule,
+            (0, common_1.forwardRef)(() => binance_module_1.BinanceModule)
         ],
         controllers: [user_controller_1.UserController],
         providers: [user_service_1.UserService],
