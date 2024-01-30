@@ -25,7 +25,9 @@ const mongoose_connection_1 = require("./common/constants/mongoose.connection");
 const throttle_config_1 = require("./common/constants/throttle.config");
 const http_config_1 = require("./common/module/http/http-config");
 const strategy_module_1 = require("./strategy/strategy.module");
+const bot_module_1 = require("./strategyBot/bot.module");
 const user_module_1 = require("./user/user.module");
+const notification_module_1 = require("./notification/mail/notification.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -43,7 +45,9 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             jwt_1.JwtModule,
             binance_module_1.BinanceModule,
-            strategy_module_1.StrategyModule
+            strategy_module_1.StrategyModule,
+            bot_module_1.BotModule,
+            notification_module_1.NotificationModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

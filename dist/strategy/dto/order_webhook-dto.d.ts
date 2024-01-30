@@ -1,5 +1,6 @@
 export declare class OrderWebHookDto {
     readonly copyOrderId: string;
+    readonly signalType: string;
     readonly symbol: string;
     readonly side: string;
     readonly type: string;

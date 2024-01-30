@@ -49,6 +49,12 @@ export declare class StrategyService {
         message: string;
         payload: any;
     }>;
+    findBySlug(slug: string): Promise<{
+        statusCode: HttpStatus;
+        response: string;
+        message: string;
+        payload: any;
+    }>;
     update(id: string, updateStrategyDto: UpdateStrategyDto): {
         statusCode: HttpStatus;
         response: string;

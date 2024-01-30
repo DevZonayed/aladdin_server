@@ -37,20 +37,6 @@ let UserService = class UserService {
     async createSystemAdministrator(createSystemAdministratorDto) {
         return await this.createSystemAdministratorUser(createSystemAdministratorDto);
     }
-    async login(userLoginDto) {
-        const userExist = await this.checkUserByEmail(userLoginDto.email);
-        if (userExist.length > 0) {
-            const matchPassword = await this.compareHashPassword(userLoginDto.password, userExist[0].password);
-            if (matchPassword) {
-                const { access_token, data } = await this.getAccessToken(userExist[0]);
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.USER_LOGIN_SUCCESSFUL, { access_token, data });
-            }
-            else {
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.UNAUTHORIZED, message_response_1.FAIELD_RESPONSE, message_response_1.INVALID_PASSWORD);
-            }
-        }
-        return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, message_response_1.FAIELD_RESPONSE, message_response_1.USER_MAIL_NOT_EXIST);
-    }
     findByEmail(email) {
         return this.userModel.findOne({ email: email });
     }
@@ -66,23 +52,47 @@ let UserService = class UserService {
     remove(id) {
         return `This action removes a #${id} user`;
     }
+    async login(userLoginDto) {
+        const userExist = await this.checkUserByEmail(userLoginDto.email);
+        if (userExist.length > 0) {
+            const matchPassword = await this.compareHashPassword(userLoginDto.password, userExist[0].password);
+            if (matchPassword) {
+                const { access_token, data } = await this.getAccessToken(userExist[0]);
+                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.USER_LOGIN_SUCCESSFUL, { access_token, data });
+            }
+            else {
+                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.UNAUTHORIZED, message_response_1.FAIELD_RESPONSE, message_response_1.INVALID_PASSWORD);
+            }
+        }
+        return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, message_response_1.FAIELD_RESPONSE, message_response_1.USER_MAIL_NOT_EXIST);
+    }
     async getBinanceBalance(id, apiKey = null, apiSecret = null) {
         try {
             let cacheBalanceKey = user_cache_keys_1.USER_BALANCE_CACHE_KEY + id.toString();
-            if (!!apiKey && !!apiSecret) {
-                let { balance, isTestMode } = await this.cacheManager.get(cacheBalanceKey);
-                if (balance) {
-                    return { balance, isTestMode };
+            if (!apiKey || !apiSecret) {
+                let cacheBalance = await this.cacheManager.get(cacheBalanceKey);
+                if (cacheBalance?.balance) {
+                    return { balance: cacheBalance.balance, isTestMode: cacheBalance.isTestMode };
                 }
             }
             const user = await this.userModel.findById(id).select(["binanceCredentials", "_id"]);
             if (user) {
-                let credentials = user.binanceCredentials;
-                const { balance, isTestMode } = await this.binanceService.checkBalance(credentials.apiKey, credentials.apiSecret);
-                if (balance) {
-                    await this.cacheManager.set(cacheBalanceKey, balance, 43200000);
-                    await this.cacheManager.set(cacheBalanceKey, { balance, isTestMode });
-                    return { balance, isTestMode };
+                let _apiKey, _apiSecret;
+                if (apiKey && apiSecret) {
+                    _apiKey = apiKey;
+                    _apiSecret = apiSecret;
+                }
+                else if (user?.binanceCredentials) {
+                    _apiKey = user.binanceCredentials.apiKey;
+                    _apiSecret = user.binanceCredentials.apiSecret;
+                }
+                else {
+                    throw new Error(message_response_1.INVALID_BINANCE_CREDENTIALS);
+                }
+                const binanceBalanceRes = await this.binanceService.checkBalance(_apiKey, _apiSecret);
+                if (binanceBalanceRes.balance) {
+                    await this.cacheManager.set(cacheBalanceKey, { balance: binanceBalanceRes.balance, isTestMode: binanceBalanceRes.isTestMode });
+                    return { balance: binanceBalanceRes.balance, isTestMode: binanceBalanceRes.isTestMode };
                 }
                 else {
                     throw new Error(message_response_1.INVALID_BINANCE_CREDENTIALS);

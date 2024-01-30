@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateQuantity = exports.calculateTradeDetailsForUser = exports.calculateParentTradePercentage = void 0;
+exports.calculateMyTradeAmount = exports.calculateQuantity = exports.calculateTradeDetailsForUser = exports.calculateParentTradePercentage = void 0;
 function calculateParentTradePercentage(capital, quantity, entryPrice) {
     capital = Number(capital);
     quantity = Number(quantity);
@@ -27,4 +27,30 @@ function calculateQuantity(amount, entryPrice) {
     return quantity;
 }
 exports.calculateQuantity = calculateQuantity;
+function calculateMyTradeAmount(traderTradeAmount, traderBalance, myBalance, myMaxTrade = 200, persistentRatio = null) {
+    let ratio = persistentRatio;
+    if (!ratio) {
+        const initialRatio = myBalance / traderBalance;
+        let myInitialTradeAmount = traderTradeAmount * initialRatio;
+        if (myInitialTradeAmount > myMaxTrade) {
+            ratio = myMaxTrade / traderTradeAmount;
+            myInitialTradeAmount = myMaxTrade;
+        }
+        else {
+            ratio = initialRatio;
+        }
+        return {
+            tradeAmount: myInitialTradeAmount,
+            ratio
+        };
+    }
+    else {
+        let tradeAmount = Math.min(traderTradeAmount * ratio, myMaxTrade);
+        return {
+            tradeAmount,
+            ratio
+        };
+    }
+}
+exports.calculateMyTradeAmount = calculateMyTradeAmount;
 //# sourceMappingURL=trade.calculations.js.map

@@ -50,6 +50,13 @@ export class CreateOrderDto {
   readonly leverage: number;
 
   @ApiProperty({
+    type: Number,
+    description: 'Order Ratio to parent ratio',
+    example: null,
+  })
+  readonly initialOrderRatio: number;
+
+  @ApiProperty({
     type: Boolean,
     description: 'Is the leverage should isolated or not',
     example: false,

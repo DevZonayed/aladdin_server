@@ -1,0 +1,45 @@
+{
+  "Something": [
+    {
+      userId: new ObjectId('65ae646dc1414939200a4558'),
+      orderDto: {
+        copyOrderId: 'filmango_btcusdt_short',     
+        signalType: 'NEW',
+        symbol: 'SOLUSDT',
+        side: 'LONG',
+        type: 'LIMIT',
+        quantity: 1,
+        price: 72,
+        leverage: 5,
+        isolated: false
+      },
+      order: [Object: null prototype] {
+        orderId: 55710194,
+        symbol: 'SOLUSDT',
+        status: 'NEW',
+        clientOrderId: 'JgAMgwwwYcgxDhyF7ByStz',   
+        price: '72.0000',
+        avgPrice: '0.00',
+        origQty: '3',
+        executedQty: '0',
+        cumQty: '0',
+        cumQuote: '0.0000',
+        timeInForce: 'GTX',
+        type: 'LIMIT',
+        reduceOnly: false,
+        closePosition: false,
+        side: 'BUY',
+        positionSide: 'LONG',
+        stopPrice: '0.0000',
+        workingType: 'CONTRACT_PRICE',
+        priceProtect: false,
+        origType: 'LIMIT',
+        priceMatch: 'NONE',
+        selfTradePreventionMode: 'NONE',
+        goodTillDate: 0,
+        updateTime: 1706462778196
+      },
+      success: true
+    }
+  ]
+}

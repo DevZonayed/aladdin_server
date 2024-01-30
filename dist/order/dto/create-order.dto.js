@@ -70,6 +70,14 @@ __decorate([
 ], CreateOrderDto.prototype, "leverage", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
+        type: Number,
+        description: 'Order Ratio to parent ratio',
+        example: null,
+    }),
+    __metadata("design:type", Number)
+], CreateOrderDto.prototype, "initialOrderRatio", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
         type: Boolean,
         description: 'Is the leverage should isolated or not',
         example: false,

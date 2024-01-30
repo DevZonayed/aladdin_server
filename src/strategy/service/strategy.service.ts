@@ -1,15 +1,16 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { SignalTypeEnum } from 'src/binance/enum/BinanceEnum';
 import { BinanceService } from 'src/binance/service/binance.service';
-import { DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, SOMETHING_WENT_WRONG, STRATEGY_CREATED_FAILED, STRATEGY_CREATED_SUCCESSFULLY, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
+import { DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, SOMETHING_WENT_WRONG, STRATEGY_CREATED_FAILED, STRATEGY_CREATED_SUCCESSFULLY, STRATEGY_INCOMING_ORDER_DISABLED, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
 import { SortBy } from 'src/common/enum/enum-sort-by';
+import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/service/user.service';
 import { CreateStrategyDto } from '../dto/create-strategy.dto';
 import { OrderWebHookDto } from '../dto/order_webhook-dto';
 import { UpdateStrategyDto } from '../dto/update-strategy.dto';
 import { Strategy } from '../entities/strategy.entity';
-import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class StrategyService {
@@ -163,6 +164,34 @@ export class StrategyService {
     }
   }
 
+
+  async findBySlug(slug: string) {
+    try {
+      const data = await this.StrategyModel.findOne({ apiSlug: slug }).exec();
+      if (data) {
+        return createApiResponse(
+          HttpStatus.OK,
+          SUCCESS_RESPONSE,
+          DATA_FOUND,
+          data,
+        );
+      } else {
+        return createApiResponse(
+          HttpStatus.NOT_FOUND,
+          SUCCESS_RESPONSE,
+          NO_DATA_FOUND,
+        );
+      }
+    } catch (error) {
+      return createApiResponse(
+        HttpStatus.BAD_REQUEST,
+        FAIELD_RESPONSE,
+        SOMETHING_WENT_WRONG,
+        error,
+      );
+    }
+  }
+
   update(
     id: string,
     updateStrategyDto: UpdateStrategyDto,
@@ -225,6 +254,16 @@ export class StrategyService {
         );
       }
 
+      // is new order off
+      if (strategy.stopNewOrder && (order.signalType == SignalTypeEnum.NEW || order.signalType == SignalTypeEnum.RE_ENTRY)) {
+        return createApiResponse(
+          HttpStatus.CONTINUE,
+          FAIELD_RESPONSE,
+          STRATEGY_INCOMING_ORDER_DISABLED,
+          [],
+        );
+      }
+
       const credentials: User[] = await this.userService.getCredentialsOfStrategy(strategy._id)
       if (credentials.length === 0) {
         return createApiResponse(
@@ -236,13 +275,6 @@ export class StrategyService {
       }
 
       return await this.binanceService.createStrategyOrders(strategy, credentials, order)
-
-      return createApiResponse(
-        HttpStatus.ACCEPTED,
-        SUCCESS_RESPONSE,
-        "Strategy Webhook Received",
-        [],
-      );
 
     } catch (err) {
       return createApiResponse(

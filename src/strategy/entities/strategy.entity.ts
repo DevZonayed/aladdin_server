@@ -45,6 +45,9 @@ export class Strategy extends Document {
   @Prop({ type: Boolean, default: false })
   isRunning: boolean;
 
+  @Prop({ type: Boolean, default: false })
+  stopNewOrder: boolean;
+
   @Prop({ type: Date })
   startAt: Date;
 

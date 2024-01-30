@@ -38,6 +38,7 @@ export declare class Strategy extends Document {
     stopLossPercentage: number;
     users: Types.ObjectId[];
     isRunning: boolean;
+    stopNewOrder: boolean;
     startAt: Date;
     createdBy: Types.ObjectId;
 }

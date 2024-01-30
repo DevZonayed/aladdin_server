@@ -9,6 +9,15 @@ export class OrderWebHookDto {
     })
     readonly copyOrderId: string;
 
+
+    @ApiProperty({
+        type: String,
+        description: 'Type of the signal',
+        example: 'NEW | RE_ENTRY | PARTIAL_CLOSE | CLOSE',
+        required: true,
+    })
+    readonly signalType: string;
+
     @ApiProperty({
         type: String,
         description: 'Name of the symbol that you want to trade',

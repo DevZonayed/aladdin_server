@@ -45,9 +45,6 @@ export class AuthController {
     return await this.authService.verifyRegCode(userData, verificationCode)
   }
 
-
-
-
   @Post('login')
   login(@Body() userLoginDto: UserLoginDto) {
     return this.authService.login(userLoginDto);

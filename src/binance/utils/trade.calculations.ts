@@ -25,3 +25,33 @@ export function calculateQuantity(amount: number, entryPrice: number) {
     return quantity;
 }
 
+
+
+// Order Quantity Calculation
+export function calculateMyTradeAmount(traderTradeAmount, traderBalance, myBalance, myMaxTrade = 200, persistentRatio = null) {
+    let ratio = persistentRatio;
+    // If the persistent ratio is not set, calculate it
+    if (!ratio) {
+        const initialRatio = myBalance / traderBalance;
+        let myInitialTradeAmount = traderTradeAmount * initialRatio;
+
+        // If the initial trade amount exceeds the max, set the persistent ratio
+        if (myInitialTradeAmount > myMaxTrade) {
+            ratio = myMaxTrade / traderTradeAmount;
+            myInitialTradeAmount = myMaxTrade;
+        } else {
+            ratio = initialRatio;
+        }
+        return {
+            tradeAmount: myInitialTradeAmount,
+            ratio
+        };
+    } else {
+        // Use the persistent ratio for subsequent trades
+        let tradeAmount = Math.min(traderTradeAmount * ratio, myMaxTrade);
+        return {
+            tradeAmount,
+            ratio
+        }
+    }
+}

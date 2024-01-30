@@ -72,6 +72,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Strategy.prototype, "isRunning", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: Boolean, default: false }),
+    __metadata("design:type", Boolean)
+], Strategy.prototype, "stopNewOrder", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: Date }),
     __metadata("design:type", Date)
 ], Strategy.prototype, "startAt", void 0);

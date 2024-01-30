@@ -23,8 +23,10 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document, Types } from 'mongoose';
+import { OrderSideEnum } from '../enums/OrderSide.enum';
 import { ClosedByEnum } from '../enums/closedBy.enum';
 import { CreatedByEnum } from '../enums/createdBy.enum';
+import { OrderTypeEnum } from '../enums/orderType.enum';
 import { StatusEnum } from '../enums/status.enum';
 export declare class Order extends Document {
     userId: Types.ObjectId;
@@ -32,12 +34,16 @@ export declare class Order extends Document {
     copyOrderId: string;
     binanceOrderId: string;
     createdBy: CreatedByEnum;
+    symbol: string;
     isRootOrder: boolean;
+    type: OrderTypeEnum;
+    side: OrderSideEnum;
     closedBy: ClosedByEnum;
-    pnl: number;
     entryPrice: number;
     orderQty: number;
+    closedQty: number;
     leverage: number;
+    initialOrderRatio: number;
     isolated: boolean;
     status: StatusEnum;
     closeReason: string;

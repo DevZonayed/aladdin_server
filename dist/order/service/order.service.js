@@ -18,6 +18,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const constants_1 = require("../../common/constants");
 const order_entity_1 = require("../entities/order.entity");
+const status_enum_1 = require("../enums/status.enum");
 let OrderService = class OrderService {
     constructor(OrderModel) {
         this.OrderModel = OrderModel;
@@ -105,9 +106,32 @@ let OrderService = class OrderService {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
-    update(id, updateOrderDto) {
+    async findOpenOrder(strategyId, copyOrderId, userId, symbol, side) {
         try {
-            const data = this.OrderModel
+            const data = await this.OrderModel.findOne({ status: status_enum_1.StatusEnum.OPEN, strategyId, copyOrderId, userId, side, symbol }).exec();
+            if (data) {
+                return {
+                    status: true,
+                    data,
+                };
+            }
+            else {
+                return {
+                    status: false,
+                    data,
+                };
+            }
+        }
+        catch (error) {
+            return {
+                status: false,
+                error: "Failed to find open order" + error.message,
+            };
+        }
+    }
+    async update(id, updateOrderDto) {
+        try {
+            const data = await this.OrderModel
                 .findByIdAndUpdate(id, updateOrderDto, { new: true })
                 .exec();
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);

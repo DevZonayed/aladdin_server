@@ -28,6 +28,7 @@ exports.StrategyModule = StrategyModule = __decorate([
         ],
         controllers: [strategy_controller_1.StrategyController],
         providers: [strategy_service_1.StrategyService],
+        exports: [strategy_service_1.StrategyService]
     })
 ], StrategyModule);
 //# sourceMappingURL=strategy.module.js.map

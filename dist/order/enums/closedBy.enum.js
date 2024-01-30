@@ -5,5 +5,6 @@ var ClosedByEnum;
 (function (ClosedByEnum) {
     ClosedByEnum["USER"] = "USER";
     ClosedByEnum["STRATEGY"] = "STRATEGY";
+    ClosedByEnum["ABNORMAL"] = "ABNORMAL";
 })(ClosedByEnum || (exports.ClosedByEnum = ClosedByEnum = {}));
 //# sourceMappingURL=closedBy.enum.js.map

@@ -25,13 +25,12 @@
 import { HttpStatus } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { SortBy } from 'src/common/enum/enum-sort-by';
-import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
 import { Order } from '../entities/order.entity';
 export declare class OrderService {
     private readonly OrderModel;
     constructor(OrderModel: Model<Order>);
-    create(createOrderDto: CreateOrderDto): Promise<{
+    create(createOrderDto: any): Promise<{
         statusCode: HttpStatus;
         response: string;
         message: string;
@@ -44,12 +43,23 @@ export declare class OrderService {
         message: string;
         payload: any;
     }>;
-    update(id: string, updateOrderDto: UpdateOrderDto): {
+    findOpenOrder(strategyId: string, copyOrderId: string, userId: string, symbol: string, side: string): Promise<{
+        status: boolean;
+        data: import("mongoose").Document<unknown, {}, Order> & Order & {
+            _id: import("mongoose").Types.ObjectId;
+        };
+        error?: undefined;
+    } | {
+        status: boolean;
+        error: string;
+        data?: undefined;
+    }>;
+    update(id: string, updateOrderDto: UpdateOrderDto): Promise<{
         statusCode: HttpStatus;
         response: string;
         message: string;
         payload: any;
-    };
+    }>;
     remove(id: string): Promise<{
         statusCode: HttpStatus;
         response: string;

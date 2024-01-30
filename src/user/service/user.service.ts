@@ -55,6 +55,27 @@ export class UserService {
     );
   }
 
+  findByEmail(email: string) {
+    return this.userModel.findOne({ email: email });
+  }
+
+  findAll() {
+    return `This action returns all user`;
+  }
+
+  findOne(id: number) {
+    return `This action returns a #${id} user`;
+  }
+
+  update(id: any, updateUserDto: UpdateUserDto) {
+    return this.userModel.findByIdAndUpdate(id, updateUserDto);
+  }
+
+  remove(id: number) {
+    return `This action removes a #${id} user`;
+  }
+
+
   async login(userLoginDto: UserLoginDto) {
     const userExist = await this.checkUserByEmail(userLoginDto.email);
     if (userExist.length > 0) {
@@ -87,45 +108,33 @@ export class UserService {
     );
   }
 
-  findByEmail(email: string) {
-    return this.userModel.findOne({ email: email });
-  }
-
-  findAll() {
-    return `This action returns all user`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: any, updateUserDto: UpdateUserDto) {
-    return this.userModel.findByIdAndUpdate(id, updateUserDto);
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
-
   async getBinanceBalance(id: Types.ObjectId | string, apiKey: string = null, apiSecret: string = null): Promise<{ balance: number | string, isTestMode: boolean }> {
     try {
       let cacheBalanceKey = USER_BALANCE_CACHE_KEY + id.toString()
-      if (!!apiKey && !!apiSecret) {
-        let { balance, isTestMode }: any = await this.cacheManager.get(cacheBalanceKey);
-        if (balance) {
-          return { balance, isTestMode };
+      if (!apiKey || !apiSecret) {
+        let cacheBalance: any = await this.cacheManager.get(cacheBalanceKey);
+        if (cacheBalance?.balance) {
+          return { balance: cacheBalance.balance, isTestMode: cacheBalance.isTestMode };
         }
       }
 
       const user = await this.userModel.findById(id).select(["binanceCredentials", "_id"]);
       if (user) {
-        let credentials = user.binanceCredentials;
-        const { balance, isTestMode } = await this.binanceService.checkBalance(credentials.apiKey, credentials.apiSecret);
-        if (balance) {
-          await this.cacheManager.set(cacheBalanceKey, balance, 43200000);
-          await this.cacheManager.set(cacheBalanceKey, { balance, isTestMode })
-          return { balance, isTestMode }
+        let _apiKey: string, _apiSecret: string;
+        if (apiKey && apiSecret) {
+          _apiKey = apiKey;
+          _apiSecret = apiSecret;
+        } else if (user?.binanceCredentials) {
+          _apiKey = user.binanceCredentials.apiKey;
+          _apiSecret = user.binanceCredentials.apiSecret;
+        } else {
+          throw new Error(INVALID_BINANCE_CREDENTIALS)
+        }
 
+        const binanceBalanceRes = await this.binanceService.checkBalance(_apiKey, _apiSecret);
+        if (binanceBalanceRes.balance) {
+          await this.cacheManager.set(cacheBalanceKey, { balance: binanceBalanceRes.balance, isTestMode: binanceBalanceRes.isTestMode },)
+          return { balance: binanceBalanceRes.balance, isTestMode: binanceBalanceRes.isTestMode }
         } else {
           throw new Error(INVALID_BINANCE_CREDENTIALS)
         }

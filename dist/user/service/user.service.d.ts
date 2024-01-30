@@ -46,12 +46,6 @@ export declare class UserService {
         message: string;
         payload: any;
     }>;
-    login(userLoginDto: UserLoginDto): Promise<{
-        statusCode: HttpStatus;
-        response: string;
-        message: string;
-        payload: any;
-    }>;
     findByEmail(email: string): import("mongoose").Query<import("mongoose").Document<unknown, {}, User> & User & {
         _id: Types.ObjectId;
     }, import("mongoose").Document<unknown, {}, User> & User & {
@@ -65,6 +59,12 @@ export declare class UserService {
         _id: Types.ObjectId;
     }, {}, User, "findOneAndUpdate">;
     remove(id: number): string;
+    login(userLoginDto: UserLoginDto): Promise<{
+        statusCode: HttpStatus;
+        response: string;
+        message: string;
+        payload: any;
+    }>;
     getBinanceBalance(id: Types.ObjectId | string, apiKey?: string, apiSecret?: string): Promise<{
         balance: number | string;
         isTestMode: boolean;

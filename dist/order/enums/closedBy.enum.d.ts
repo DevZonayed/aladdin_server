@@ -1,4 +1,5 @@
 export declare enum ClosedByEnum {
     USER = "USER",
-    STRATEGY = "STRATEGY"
+    STRATEGY = "STRATEGY",
+    ABNORMAL = "ABNORMAL"
 }

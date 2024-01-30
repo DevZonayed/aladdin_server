@@ -1,15 +1,34 @@
-import BinanceType from "node-binance-api";
+import { Cache } from 'cache-manager';
 import { OrderService } from 'src/order/service/order.service';
 import { OrderWebHookDto } from 'src/strategy/dto/order_webhook-dto';
 import { Strategy } from 'src/strategy/entities/strategy.entity';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/service/user.service';
+import { BinanceExchaneService } from './exchangeInfo.service';
 export declare class BinanceService {
     private readonly userService;
     private readonly orderService;
-    constructor(userService: UserService, orderService: OrderService);
+    private cacheService;
+    binanceExchaneService: BinanceExchaneService;
+    constructor(userService: UserService, orderService: OrderService, cacheService: Cache);
     checkBalance(apiKey: string, secretKey: string): Promise<any>;
-    createOrder(strategy: Strategy, credentials: any, orderDto: OrderWebHookDto): Promise<any>;
+    private safePromiseBuild;
     createStrategyOrders(strategy: Strategy, userCredentials: User[], OrderWebHookDto: OrderWebHookDto): Promise<any[]>;
-    binanceApiHandler(apiKey: string, secretKey: string, action: (binance: BinanceType, binanceTest: BinanceType) => Promise<any>): Promise<any>;
+    private persistOrderResults;
+    private handleOrderResultProcessing;
+    private retrieveDataFromOrderResult;
+    private buildNewOrderPayload;
+    private updateExistingOrder;
+    private computeOrderUpdateDetails;
+    private computeClosedOrderQuantity;
+    private computeOrderTotalQuantity;
+    private generateFutureOrders;
+    private processClosingOfOpenFutureOrders;
+    private computeTotalOrderQuantity;
+    private identifyOrdersForCancellation;
+    private configureLeverageAndMarginSettings;
+    private executeFutureBuyOrder;
+    private executeFutureSellOrder;
+    private generateFutureOrdersResponse;
+    private executeBinanceApiAction;
 }

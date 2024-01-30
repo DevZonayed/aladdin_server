@@ -16,7 +16,9 @@ import { getDefaultDbConnectionString } from './common/constants/mongoose.connec
 import { getThroTTLconfig } from './common/constants/throttle.config';
 import { httpConfig } from './common/module/http/http-config';
 import { StrategyModule } from './strategy/strategy.module';
+import { BotModule } from './strategyBot/bot.module';
 import { UserModule } from './user/user.module';
+import { NotificationModule } from './notification/mail/notification.module';
 
 @Module({
   imports: [
@@ -31,7 +33,9 @@ import { UserModule } from './user/user.module';
     UserModule,
     JwtModule,
     BinanceModule,
-    StrategyModule
+    StrategyModule,
+    BotModule,
+    NotificationModule
   ],
   controllers: [AppController],
   providers: [AppService],

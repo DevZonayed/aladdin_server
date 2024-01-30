@@ -5,5 +5,6 @@ export declare class CreateOrderDto {
     readonly quantity: number;
     readonly price: number;
     readonly leverage: number;
+    readonly initialOrderRatio: number;
     readonly isolated: boolean;
 }

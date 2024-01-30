@@ -26,6 +26,15 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,
+        description: 'Type of the signal',
+        example: 'NEW | RE_ENTRY | PARTIAL_CLOSE | CLOSE',
+        required: true,
+    }),
+    __metadata("design:type", String)
+], OrderWebHookDto.prototype, "signalType", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: String,
         description: 'Name of the symbol that you want to trade',
         example: 'SOLUSDT',
         required: true,

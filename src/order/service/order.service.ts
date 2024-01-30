@@ -3,9 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, ORDER_CREATE_FAILED, ORDER_CREATE_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
 import { SortBy } from 'src/common/enum/enum-sort-by';
-import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
 import { Order } from '../entities/order.entity';
+import { StatusEnum } from '../enums/status.enum';
 
 
 @Injectable()
@@ -18,7 +18,7 @@ export class OrderService {
 
   }
   async create(
-    createOrderDto: CreateOrderDto,
+    createOrderDto: any,
   ) {
     try {
       const createOrder = new this.OrderModel(
@@ -160,12 +160,35 @@ export class OrderService {
     }
   }
 
-  update(
+  async findOpenOrder(strategyId: string, copyOrderId: string, userId: string, symbol: string, side: string) {
+    try {
+      const data = await this.OrderModel.findOne({ status: StatusEnum.OPEN, strategyId, copyOrderId, userId, side, symbol }).exec();
+      if (data) {
+        return {
+          status: true,
+          data,
+        }
+      } else {
+        return {
+          status: false,
+          data,
+        }
+      }
+    } catch (error) {
+      return {
+        status: false,
+        error: "Failed to find open order" + error.message,
+      }
+    }
+  }
+
+
+  async update(
     id: string,
     updateOrderDto: UpdateOrderDto,
   ) {
     try {
-      const data = this.OrderModel
+      const data = await this.OrderModel
         .findByIdAndUpdate(id, updateOrderDto, { new: true })
         .exec();
       return createApiResponse(

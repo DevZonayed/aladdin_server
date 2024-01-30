@@ -16,6 +16,7 @@ exports.StrategyService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const BinanceEnum_1 = require("../../binance/enum/BinanceEnum");
 const binance_service_1 = require("../../binance/service/binance.service");
 const constants_1 = require("../../common/constants");
 const user_service_1 = require("../../user/service/user.service");
@@ -109,6 +110,20 @@ let StrategyService = class StrategyService {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
+    async findBySlug(slug) {
+        try {
+            const data = await this.StrategyModel.findOne({ apiSlug: slug }).exec();
+            if (data) {
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);
+            }
+            else {
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.SUCCESS_RESPONSE, constants_1.NO_DATA_FOUND);
+            }
+        }
+        catch (error) {
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
+        }
+    }
     update(id, updateStrategyDto) {
         try {
             const data = this.StrategyModel
@@ -138,12 +153,14 @@ let StrategyService = class StrategyService {
             if (!strategy) {
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND, []);
             }
+            if (strategy.stopNewOrder && (order.signalType == BinanceEnum_1.SignalTypeEnum.NEW || order.signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY)) {
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.CONTINUE, constants_1.FAIELD_RESPONSE, constants_1.STRATEGY_INCOMING_ORDER_DISABLED, []);
+            }
             const credentials = await this.userService.getCredentialsOfStrategy(strategy._id);
             if (credentials.length === 0) {
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND, []);
             }
             return await this.binanceService.createStrategyOrders(strategy, credentials, order);
-            return (0, constants_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Strategy Webhook Received", []);
         }
         catch (err) {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.INTERNAL_SERVER_ERROR, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, err.message);
