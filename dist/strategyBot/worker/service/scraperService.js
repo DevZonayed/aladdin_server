@@ -175,7 +175,7 @@ class ScrapWorker {
         console.log(message);
     }
     scrapAndUpdate() {
-        mockprocessCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
+        this.processCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
             .then(res => {
             this.updateTime = Date.now();
             this.errorMessage = null;
