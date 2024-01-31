@@ -7,7 +7,8 @@ class WorkerManager {
         this.workers = initialworkers;
     }
     getWorker(identifier) {
-        return this.workers.filter(worker => worker.strName === identifier || worker.id === identifier)[0];
+        let result = this.workers.filter(worker => worker.strName === identifier || worker.id === identifier)[0];
+        return result;
     }
     getWorkers(identifier) {
         return this.workers.filter(worker => worker.strName === identifier || worker.id === identifier);

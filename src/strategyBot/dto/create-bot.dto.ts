@@ -53,5 +53,12 @@ export class CreateBotDto {
     example: true,
     required: true
   })
-  readonly isPublic: number;
+  readonly isPublic: boolean;
+
+  @ApiProperty({
+    type: Boolean,
+    description: 'Runnig Order Of this bot?',
+    example: 0,
+  })
+  readonly runningOrders: number;
 }

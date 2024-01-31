@@ -40,17 +40,101 @@ let UserService = class UserService {
     findByEmail(email) {
         return this.userModel.findOne({ email: email });
     }
-    findAll() {
-        return `This action returns all user`;
+    async findAll(page, limit, order, sort, search, startDate, endDate) {
+        try {
+            const pipeline = [];
+            const matchStage = {};
+            if (search) {
+                const searchRegex = new RegExp(search, 'i');
+                const allFields = Object.keys(this.userModel.schema.obj);
+                matchStage.$or = allFields.map((field) => ({
+                    [field]: { $regex: searchRegex },
+                }));
+            }
+            if (startDate && endDate) {
+                const startDateObject = new Date(startDate);
+                const endDateObject = new Date(endDate);
+                matchStage.createdAt = {
+                    $gte: startDateObject,
+                    $lt: endDateObject,
+                };
+            }
+            if (Object.keys(matchStage).length > 0) {
+                pipeline.push({ $match: matchStage });
+            }
+            pipeline.push({ $count: 'total' });
+            const totalResult = await this.userModel.aggregate(pipeline);
+            const total = totalResult.length > 0 ? totalResult[0].total : 0;
+            pipeline.pop();
+            const startIndex = (page - 1) * limit;
+            pipeline.push({ $skip: startIndex }, { $limit: parseInt(limit.toString(), 10) });
+            const sortStage = {};
+            sortStage[order] = sort === 'desc' ? -1 : 1;
+            pipeline.push({ $sort: sortStage });
+            const data = await this.userModel.aggregate(pipeline);
+            const totalPages = Math.ceil(total / limit);
+            const hasNextPage = page < totalPages;
+            const hasPrevPage = page > 1;
+            const nextPage = hasNextPage ? Number(page) + 1 : null;
+            const prevPage = hasPrevPage ? Number(page) - 1 : null;
+            if (data.length > 0) {
+                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.DATA_FOUND, {
+                    data,
+                    pagination: {
+                        total,
+                        totalPages,
+                        currentPage: Number(page),
+                        hasNextPage,
+                        hasPrevPage,
+                        nextPage,
+                        prevPage,
+                    },
+                });
+            }
+            else {
+                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.NO_DATA_FOUND);
+            }
+        }
+        catch (error) {
+            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, message_response_1.FAIELD_RESPONSE, message_response_1.SOMETHING_WENT_WRONG, error);
+        }
     }
-    findOne(id) {
-        return `This action returns a #${id} user`;
+    async findOne(id) {
+        try {
+            const data = await this.userModel.findById(id).exec();
+            if (data) {
+                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.DATA_FOUND, data);
+            }
+            else {
+                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, message_response_1.SUCCESS_RESPONSE, message_response_1.NO_DATA_FOUND);
+            }
+        }
+        catch (error) {
+            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, message_response_1.FAIELD_RESPONSE, message_response_1.SOMETHING_WENT_WRONG, error);
+        }
     }
-    update(id, updateUserDto) {
-        return this.userModel.findByIdAndUpdate(id, updateUserDto);
+    async update(id, updateUserDto) {
+        try {
+            const data = await this.userModel
+                .findByIdAndUpdate(id, updateUserDto, { new: true })
+                .exec();
+            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.DATA_FOUND, data);
+        }
+        catch (error) {
+            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, message_response_1.FAIELD_RESPONSE, message_response_1.SOMETHING_WENT_WRONG, error);
+        }
     }
-    remove(id) {
-        return `This action removes a #${id} user`;
+    async remove(id) {
+        try {
+            const data = await this.userModel.findByIdAndDelete(id).exec();
+            if (data) {
+                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.DATA_FOUND, data);
+            }
+            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, message_response_1.FAIELD_RESPONSE, message_response_1.NO_DATA_FOUND);
+        }
+        catch (error) {
+            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, message_response_1.FAIELD_RESPONSE, message_response_1.SOMETHING_WENT_WRONG, error);
+        }
     }
     async login(userLoginDto) {
         const userExist = await this.checkUserByEmail(userLoginDto.email);

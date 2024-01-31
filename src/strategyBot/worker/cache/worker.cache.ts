@@ -5,8 +5,9 @@ class WorkerManager {
     }
 
     getWorker(identifier) {
-        return this.workers.filter(worker =>
+        let result = this.workers.filter(worker =>
             worker.strName === identifier || worker.id === identifier)[0];
+        return result
     }
 
     getWorkers(identifier) {
@@ -50,3 +51,4 @@ class WorkerManager {
 const WorkerManagerInstance = new WorkerManager();
 
 export { WorkerManager, WorkerManagerInstance };
+

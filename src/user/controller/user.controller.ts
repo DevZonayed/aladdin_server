@@ -6,12 +6,15 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { Types } from 'mongoose';
+import { DataSearchDecorator } from 'src/common/decorators/data-search.decorator';
+import { SortBy } from 'src/common/enum/enum-sort-by';
 import { Roles } from '../../common/decorators';
 import { UserRole } from '../../common/enum';
 import { RolesGuard } from '../../common/guard';
@@ -58,23 +61,46 @@ export class UserController {
   }
 
   @Get()
-  @Roles(UserRole.PRO_USER, UserRole.SYSTEM_ADMINISTRATOR)
-  findAll() {
-    return this.userService.findAll();
+  @Roles(UserRole.ADMINISTRATOR, UserRole.SYSTEM_ADMINISTRATOR)
+  @DataSearchDecorator([
+    { name: 'startDate', type: Date, required: false, example: '2022-01-01' },
+    { name: 'endDate', type: Date, required: false, example: '2022-02-01' },
+  ])
+  async findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
+    @Query('order') order: string,
+    @Query('sort') sort: SortBy,
+    @Query('search') search: string,
+    @Query('startDate') startDate: Date,
+    @Query('endDate') endDate: Date,
+  ) {
+    return this.userService.findAll(
+      page,
+      limit,
+      order,
+      sort,
+      search,
+      startDate,
+      endDate,
+    );
   }
 
   @Get(':id')
+  @Roles(UserRole.ADMINISTRATOR, UserRole.SYSTEM_ADMINISTRATOR)
   findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+    return this.userService.findOne(id);
   }
 
   @Patch(':id')
+  @Roles(UserRole.SYSTEM_ADMINISTRATOR)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+    return this.userService.update(id, updateUserDto);
   }
 
   @Delete(':id')
+  @Roles(UserRole.SYSTEM_ADMINISTRATOR)
   remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+    return this.userService.remove(id);
   }
 }

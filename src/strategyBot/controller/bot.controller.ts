@@ -75,6 +75,19 @@ export class BotController {
     return this.BotService.handleStopBot(id);
   }
 
+  @Post("/status/:id")
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(
+    UserRole.SYSTEM_ADMINISTRATOR,
+    UserRole.ADMINISTRATOR,
+  )
+  async getBotStatus(
+    @Req() requestData: Request,
+    @Param('id') id: string
+  ): Promise<any> {
+    return this.BotService.getBotStatus(id);
+  }
+
 
 
   @Get()

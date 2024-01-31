@@ -30,13 +30,11 @@ import { CreateBotDto } from '../dto/create-bot.dto';
 import { UpdateBotDto } from '../dto/update-bot.dto';
 import { Bot } from '../entities/bot.entity';
 import { WorkerService } from '../worker/service/worker.service';
-import { NotificationService } from 'src/notification/mail/service/notification.service';
 export declare class BotService {
     private readonly BotModel;
     private readonly workerService;
     private readonly strategyService;
-    private readonly mailNotificationService;
-    constructor(BotModel: Model<Bot>, workerService: WorkerService, strategyService: StrategyService, mailNotificationService: NotificationService);
+    constructor(BotModel: Model<Bot>, workerService: WorkerService, strategyService: StrategyService);
     create(createBotDto: CreateBotDto): Promise<{
         statusCode: HttpStatus;
         response: string;
@@ -55,6 +53,12 @@ export declare class BotService {
         message: string;
         payload: any;
     }>;
+    getBotStatus(id: string): Promise<{
+        statusCode: HttpStatus;
+        response: string;
+        message: string;
+        payload: any;
+    }>;
     findAll(page: number, limit: number, order: string, sort: SortBy, search: string, startDate: Date, endDate: Date): Promise<any>;
     findOne(id: string): Promise<{
         statusCode: HttpStatus;
@@ -62,12 +66,12 @@ export declare class BotService {
         message: string;
         payload: any;
     }>;
-    update(id: string, updateBotDto: UpdateBotDto): {
+    update(id: string, updateBotDto: UpdateBotDto): Promise<{
         statusCode: HttpStatus;
         response: string;
         message: string;
         payload: any;
-    };
+    }>;
     remove(id: string): Promise<{
         statusCode: HttpStatus;
         response: string;

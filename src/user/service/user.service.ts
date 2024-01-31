@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { Cache } from 'cache-manager';
 import { Model, Types } from 'mongoose';
 import { BinanceService } from 'src/binance/service/binance.service';
+import { SortBy } from 'src/common/enum/enum-sort-by';
 import { UpdateUserCredentialsDto } from 'src/user/dto/update-user-credentials.dto';
 import { CreateSystemAdministratorDto } from '../../auth/dto/create-system-administrator.dto';
 import { UserLoginDto } from '../../auth/dto/user-login.dto';
@@ -16,6 +17,7 @@ import {
   FAIELD_RESPONSE,
   INVALID_BINANCE_CREDENTIALS,
   INVALID_PASSWORD,
+  NO_DATA_FOUND,
   SOMETHING_WENT_WRONG,
   STRATEGY_SUBSCRIBED_SUCCESS,
   STRATEGY_UNSUBSCRIBED_SUCCESS,
@@ -59,20 +61,173 @@ export class UserService {
     return this.userModel.findOne({ email: email });
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll(
+    page: number,
+    limit: number,
+    order: string,
+    sort: SortBy,
+    search: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<any> {
+    try {
+      const pipeline: any[] = [];
+      const matchStage: any = {};
+
+      if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        const allFields = Object.keys(this.userModel.schema.obj);
+
+        matchStage.$or = allFields.map((field) => ({
+          [field]: { $regex: searchRegex },
+        }));
+      }
+
+      if (startDate && endDate) {
+        const startDateObject = new Date(startDate);
+        const endDateObject = new Date(endDate);
+
+        matchStage.createdAt = {
+          $gte: startDateObject,
+          $lt: endDateObject,
+        };
+      }
+
+      if (Object.keys(matchStage).length > 0) {
+        pipeline.push({ $match: matchStage });
+      }
+
+      pipeline.push({ $count: 'total' });
+
+      const totalResult = await this.userModel.aggregate(pipeline);
+      const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+      pipeline.pop();
+
+      const startIndex = (page - 1) * limit;
+
+      pipeline.push(
+        { $skip: startIndex },
+        { $limit: parseInt(limit.toString(), 10) },
+      );
+
+      const sortStage: any = {};
+      sortStage[order] = sort === 'desc' ? -1 : 1;
+      pipeline.push({ $sort: sortStage });
+
+      const data = await this.userModel.aggregate(pipeline);
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNextPage = page < totalPages;
+      const hasPrevPage = page > 1;
+      const nextPage = hasNextPage ? Number(page) + 1 : null;
+      const prevPage = hasPrevPage ? Number(page) - 1 : null;
+
+      if (data.length > 0) {
+        return createApiResponse(HttpStatus.OK, SUCCESS_RESPONSE, DATA_FOUND, {
+          data,
+          pagination: {
+            total,
+            totalPages,
+            currentPage: Number(page),
+            hasNextPage,
+            hasPrevPage,
+            nextPage,
+            prevPage,
+          },
+        });
+      } else {
+        return createApiResponse(
+          HttpStatus.OK,
+          SUCCESS_RESPONSE,
+          NO_DATA_FOUND,
+        );
+      }
+    } catch (error) {
+      return createApiResponse(
+        HttpStatus.BAD_REQUEST,
+        FAIELD_RESPONSE,
+        SOMETHING_WENT_WRONG,
+        error,
+      );
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    try {
+      const data = await this.userModel.findById(id).exec();
+      if (data) {
+        return createApiResponse(
+          HttpStatus.OK,
+          SUCCESS_RESPONSE,
+          DATA_FOUND,
+          data,
+        );
+      } else {
+        return createApiResponse(
+          HttpStatus.NOT_FOUND,
+          SUCCESS_RESPONSE,
+          NO_DATA_FOUND,
+        );
+      }
+    } catch (error) {
+      return createApiResponse(
+        HttpStatus.BAD_REQUEST,
+        FAIELD_RESPONSE,
+        SOMETHING_WENT_WRONG,
+        error,
+      );
+    }
   }
 
-  update(id: any, updateUserDto: UpdateUserDto) {
-    return this.userModel.findByIdAndUpdate(id, updateUserDto);
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ) {
+    try {
+      const data = await this.userModel
+        .findByIdAndUpdate(id, updateUserDto, { new: true })
+        .exec();
+      return createApiResponse(
+        HttpStatus.OK,
+        SUCCESS_RESPONSE,
+        DATA_FOUND,
+        data,
+      );
+    } catch (error) {
+      return createApiResponse(
+        HttpStatus.BAD_REQUEST,
+        FAIELD_RESPONSE,
+        SOMETHING_WENT_WRONG,
+        error,
+      );
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    try {
+      const data = await this.userModel.findByIdAndDelete(id).exec();
+      if (data) {
+        return createApiResponse(
+          HttpStatus.OK,
+          SUCCESS_RESPONSE,
+          DATA_FOUND,
+          data,
+        );
+      }
+      return createApiResponse(
+        HttpStatus.NOT_FOUND,
+        FAIELD_RESPONSE,
+        NO_DATA_FOUND,
+      );
+    } catch (error) {
+      return createApiResponse(
+        HttpStatus.BAD_REQUEST,
+        FAIELD_RESPONSE,
+        SOMETHING_WENT_WRONG,
+        error,
+      );
+    }
   }
 
 

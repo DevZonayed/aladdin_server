@@ -31,6 +31,7 @@ export declare class Bot extends Document {
     p2ot: string;
     csrfToken: string;
     isPublic: boolean;
+    runningOrders: number;
     isRunning: boolean;
     haveProxy: boolean;
     proxyUrl: string;

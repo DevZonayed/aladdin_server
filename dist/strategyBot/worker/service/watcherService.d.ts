@@ -15,6 +15,7 @@ export declare class DataWatcher {
     isUnusualActivityDetected(newData: any): boolean;
     detectNewAndRemovedOrders(newData: any, newIds: any, oldIds: any): void;
     detectUpdatedOrders(newData: any): void;
+    runningOrders(): any[];
     isEqual(obj1: any, obj2: any): boolean;
     triggerEvent(event: any, ...args: any[]): void;
 }

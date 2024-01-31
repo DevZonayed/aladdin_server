@@ -20,13 +20,11 @@ const constants_1 = require("../../common/constants");
 const strategy_service_1 = require("../../strategy/service/strategy.service");
 const bot_entity_1 = require("../entities/bot.entity");
 const worker_service_1 = require("../worker/service/worker.service");
-const notification_service_1 = require("../../notification/mail/service/notification.service");
 let BotService = class BotService {
-    constructor(BotModel, workerService, strategyService, mailNotificationService) {
+    constructor(BotModel, workerService, strategyService) {
         this.BotModel = BotModel;
         this.workerService = workerService;
         this.strategyService = strategyService;
-        this.mailNotificationService = mailNotificationService;
     }
     async create(createBotDto) {
         try {
@@ -50,9 +48,6 @@ let BotService = class BotService {
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.NO_DATA_FOUND, constants_1.STRATEGY_BOT_NOT_FOUND, null);
             }
             let result = await this.workerService.handleStartWorker(bot);
-            bot.startAt = new Date();
-            bot.isRunning = true;
-            await bot.save();
             return result;
         }
         catch (err) {
@@ -66,13 +61,19 @@ let BotService = class BotService {
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.NO_DATA_FOUND, constants_1.STRATEGY_BOT_NOT_FOUND, null);
             }
             let result = await this.workerService.handleStopWorker(bot);
-            bot.isRunning = false;
-            await bot.save();
             return result;
         }
         catch (err) {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.CONFLICT, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, err.message);
         }
+    }
+    async getBotStatus(id) {
+        const bot = await this.BotModel.findById(id);
+        if (!bot) {
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.NO_DATA_FOUND, constants_1.STRATEGY_BOT_NOT_FOUND, null);
+        }
+        let result = await this.workerService.getBotStatus(bot);
+        return result;
     }
     async findAll(page, limit, order, sort, search, startDate, endDate) {
         try {
@@ -147,11 +148,12 @@ let BotService = class BotService {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
-    update(id, updateBotDto) {
+    async update(id, updateBotDto) {
         try {
-            const data = this.BotModel
+            const data = await this.BotModel
                 .findByIdAndUpdate(id, updateBotDto, { new: true })
                 .exec();
+            await this.handleStartBot(data.BotName);
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);
         }
         catch (error) {
@@ -177,7 +179,6 @@ exports.BotService = BotService = __decorate([
     __param(0, (0, mongoose_1.InjectModel)(bot_entity_1.Bot.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
         worker_service_1.WorkerService,
-        strategy_service_1.StrategyService,
-        notification_service_1.NotificationService])
+        strategy_service_1.StrategyService])
 ], BotService);
 //# sourceMappingURL=bot.service.js.map

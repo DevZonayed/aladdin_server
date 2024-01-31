@@ -42,6 +42,9 @@ let BotController = class BotController {
     async stop(requestData, id) {
         return this.BotService.handleStopBot(id);
     }
+    async getBotStatus(requestData, id) {
+        return this.BotService.getBotStatus(id);
+    }
     async findAll(page, limit, order, sort, search, startDate, endDate) {
         return this.BotService.findAll(page, limit, order, sort, search, startDate, endDate);
     }
@@ -87,6 +90,16 @@ __decorate([
     __metadata("design:paramtypes", [Request, String]),
     __metadata("design:returntype", Promise)
 ], BotController.prototype, "stop", null);
+__decorate([
+    (0, common_1.Post)("/status/:id"),
+    (0, common_1.UseGuards)(guard_1.AuthGuard, guard_1.RolesGuard),
+    (0, decorators_1.Roles)(enum_1.UserRole.SYSTEM_ADMINISTRATOR, enum_1.UserRole.ADMINISTRATOR),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Request, String]),
+    __metadata("design:returntype", Promise)
+], BotController.prototype, "getBotStatus", null);
 __decorate([
     (0, common_1.Get)(),
     (0, data_search_decorator_1.DataSearchDecorator)([

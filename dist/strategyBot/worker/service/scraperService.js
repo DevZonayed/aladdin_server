@@ -2,44 +2,41 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScrapWorker = void 0;
 const BinanceEnum_1 = require("../../../binance/enum/BinanceEnum");
-const mail_type_enum_1 = require("../../../notification/mail/enum/mail.type.enum");
+const botMail_utils_1 = require("../utils/botMail.utils");
 const watcherService_1 = require("./watcherService");
 const axios = require("axios");
 class ScrapWorker {
-    constructor(strategyService, botDto, mailNotificationService) {
+    constructor(strategyService, botDto, mailNotificationService, BotModel) {
         this.configData = {
             scrapInterval: 3000
         };
-        let { _id, BotName, strategyId, p20t, csrfToken } = botDto;
-        Object.assign(this, { id: _id, strName: BotName, scrapId: strategyId, p20t, csrfToken, strategyService, botDto, mailNotificationService });
+        let { _id: id, BotName, strategyId, p2ot, csrfToken } = botDto;
+        Object.assign(this, { id: id.toString(), strName: BotName, scrapId: strategyId, p2ot, csrfToken, strategyService, botDto, mailNotificationService, BotModel });
         this.isWorking = false;
         this.updateTime = Date.now();
         this.dataWatcher = new watcherService_1.DataWatcher();
         this.errorMessage = null;
-        this.notifyTelegram(`A Strategy Created Called ${this.strName}`);
     }
-    getAllData() {
+    getWorkerStatus() {
+        let openOrders = this.dataWatcher.runningOrders();
         return {
             scrapId: this.scrapId,
-            p20t: this.p20t,
+            p2ot: this.p2ot,
             csrfToken: this.csrfToken,
             isWorking: this.isWorking,
-            lastUpdate: new Date(this.updateTime).toLocaleString()
+            lastUpdate: new Date(this.updateTime).toLocaleString(),
+            openOrders
         };
     }
-    updateProperty(key, value) {
+    updateWorkerProperty(key, value) {
         if (this.hasOwnProperty(key)) {
             this[key] = value;
-            this.notifyTelegram(`${key} Updated of "${this.strName}" Strategy`);
+            (0, botMail_utils_1.sendInfoNotificationToAdmins)(this.mailNotificationService, `${key} Updated of "${this.strName}" Strategy`);
             return true;
         }
         return false;
     }
-    isCompleteScrapWorker() {
-        const requiredProps = ['id', 'scrapId', 'p20t', 'csrfToken',];
-        return requiredProps.every(prop => this[prop]);
-    }
-    checkUpdates() {
+    monitorMissedUpdates() {
         this.updateTimerId = setInterval(() => {
             if ((this.updateTime + 10000) <= Date.now() && this.isWorking) {
                 this.isWorking = false;
@@ -50,47 +47,46 @@ class ScrapWorker {
             }
         }, this.configData.scrapInterval * 5);
     }
-    startScrapWorker() {
-        if (!this.isCompleteScrapWorker())
-            return false;
-        this.notifyTelegram(this.strName + " Strategy token checking...");
-        isValidToken(this.p20t, this.csrfToken)
-            .then(res => {
-            this.notifyTelegram(this.strName + " Strategy is Started!");
+    async startWorker() {
+        try {
+            !this.botDto.isPublic && await isValidToken(this.p2ot, this.csrfToken);
+            !this.botDto.isPublic && this.checkTokenValidity();
+            await this.updateBotDb(this.botDto._id, { isRunning: true });
             this.isWorking = true;
-            this.checkUpdates();
+            this.monitorMissedUpdates();
             if (!this.intervalId) {
                 this.intervalId = setInterval(() => this.scrapAndUpdate(), this.configData.scrapInterval);
             }
-            this.handleEvents();
+            this.setupEventListeners();
             return true;
-        })
-            .catch(err => {
+        }
+        catch (err) {
             let isExpaired = err?.response?.data;
             if (isExpaired) {
+                (0, botMail_utils_1.sendErrorNotificationToAdmins)(this.mailNotificationService, "Token Expaired !❌❌\nPlease Update Token Immediately!");
                 this.notifyTelegram("Token Expaired !❌❌\nPlease Update Token Immediately!");
-                this.stopScrapWorker();
+                this.stopWorker();
             }
             else {
                 this.notifyTelegram("Something Went Wrong!\nToken Validation Failed!");
             }
-        });
+        }
     }
-    stopScrapWorker() {
+    async stopWorker() {
         clearInterval(this.intervalId);
         clearInterval(this.updateTimerId);
         clearInterval(this.tokenValidateTimerId);
         this.intervalId = this.updateTimerId = this.tokenValidateTimerId = null;
-        this.notifyTelegram(this.strName + " Strategy is Stopped!");
         this.isWorking = false;
+        await this.updateBotDb(this.botDto._id, { isRunning: true });
         return true;
     }
-    orgData(row) {
+    organizeAndWatchData(row) {
         let data = row?.data || [];
         let openPositions = data.filter(res => +res.positionAmount !== 0);
         this.dataWatcher.updateData(openPositions);
     }
-    handleCopyTradeRequest({ scrapId, p20t, csrfToken }) {
+    processCopyTradeRequest({ scrapId, p2ot, csrfToken }) {
         return new Promise((resolve, reject) => {
             const CancelToken = axios.CancelToken;
             let cancelPreviousRequest;
@@ -101,7 +97,7 @@ class ScrapWorker {
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Clienttype': 'web',
                 'Content-Type': 'application/json',
-                'Cookie': `p20t=${p20t};`,
+                'Cookie': `p2ot=${p2ot};`,
                 'Csrftoken': `${csrfToken}`,
                 'Referer': `https://www.binance.com/en/copy-trading/lead-details/${scrapId}`,
                 'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
@@ -132,185 +128,180 @@ class ScrapWorker {
     }
     checkTokenValidity() {
         this.tokenValidateTimerId = setInterval(() => {
-            isValidToken(this.p20t, this.csrfToken).then(res => res).catch(err => {
+            isValidToken(this.p2ot, this.csrfToken).then(res => res).catch(err => {
                 let isExpaired = err?.response?.data;
                 if (isExpaired) {
-                    this.notifyTelegram("Token Expaired !❌❌\nPlease Update Token Immediately!");
-                    this.stopScrapWorker();
+                    let message = "Token Expaired !❌❌\nPlease Update Token Immediately!";
+                    (0, botMail_utils_1.sendErrorNotificationToAdmins)(this.mailNotificationService, message);
+                    this.stopWorker();
                 }
                 else {
-                    this.notifyTelegram("Something Went Wrong!\nToken Validation Failed!");
+                    let message = "Something Went Wrong!\nToken Validation Failed!";
+                    (0, botMail_utils_1.sendErrorNotificationToAdmins)(this.mailNotificationService, message);
                 }
             });
         }, this.configData.scrapInterval * 100);
     }
-    handleEvents() {
+    setupEventListeners() {
         this.dataWatcher.on("newOrder", (order) => {
-            handleCreateOrder(order, this, this.botDto);
+            this.handleCreateOrder(order);
         });
         this.dataWatcher.on("removedOrder", (order) => {
-            handleCloseOrder(order, this, this.botDto);
+            this.handleCloseOrder(order);
         });
         this.dataWatcher.on("updatedOrder", (prevOrder, currentOrder) => {
-            handleUpdateOrder(prevOrder, currentOrder, this, this.botDto);
+            this.handleUpdateOrder(prevOrder, currentOrder);
         });
-        this.dataWatcher.on("unUsualActivity", (order) => {
-            this.stopScrapWorker();
+        this.dataWatcher.on("unUsualActivity", async (order) => {
+            this.stopWorker();
             this.notifyTelegram("Unusual Activity Detacted!\n token checking!");
-            isValidToken(this.p20t, this.csrfToken).then(res => {
-                this.startScrapWorker();
+            await isValidToken(this.p2ot, this.csrfToken).then(res => {
+                this.startWorker();
             }).catch(err => {
                 let isExpaired = err?.response?.data;
                 if (isExpaired) {
+                    (0, botMail_utils_1.sendErrorNotificationToAdmins)(this.mailNotificationService, "Token Expaired !❌❌\nPlease Update Token Immediately!");
                     this.notifyTelegram("Token Expaired !❌❌\nPlease Update Token Immediately!");
                 }
                 else {
-                    this.startScrapWorker();
+                    this.startWorker();
                     this.notifyTelegram("Something Went Wrong!\nToken Validation Failed!");
                 }
             });
         });
     }
     notifyTelegram(message) {
+        console.log(message);
     }
     scrapAndUpdate() {
-        this.handleCopyTradeRequest({ scrapId: this.scrapId, p20t: this.p20t, csrfToken: this.csrfToken })
+        this.processCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
             .then(res => {
             this.updateTime = Date.now();
             this.errorMessage = null;
-            this.orgData(res);
+            this.organizeAndWatchData(res);
         })
             .catch(err => {
             this.errorMessage = err.message;
             console.error(err);
         });
     }
+    async handleCreateOrder(order) {
+        try {
+            let strategyService = this.strategyService;
+            let botName = this.botDto.BotName;
+            let botSlag = this.botDto.strategySlug;
+            let orderPayload = {
+                copyOrderId: `${botName}-${order.id}`,
+                isolated: Boolean(order.isolated),
+                leverage: order.leverage,
+                price: order.entryPrice,
+                quantity: order.positionAmount,
+                side: order.positionSide.toUpperCase(),
+                signalType: BinanceEnum_1.SignalTypeEnum.NEW,
+                symbol: order.symbol,
+                type: "LIMIT"
+            };
+            await strategyService.handleWebHook(botSlag, orderPayload);
+            let message = `New Order Created for ${order.symbol} with ${order.positionAmount} quantity`;
+            (0, botMail_utils_1.sendSuccessNotificationToAdmins)(this.mailNotificationService, message);
+        }
+        catch (err) {
+            console.error(`Error Occured on order creation in ${this.botDto.BotName} Bot!`, err);
+            let message = `Order Create for ${this.botDto.BotName} Bot Error : ${err.message}`;
+            (0, botMail_utils_1.sendErrorNotificationToAdmins)(this.mailNotificationService, message);
+        }
+    }
+    async handleUpdateOrder(prevOrder, newOrder) {
+        try {
+            let differences = [];
+            let includedKeys = ["positionAmount"];
+            Object.keys(prevOrder).forEach(key => {
+                if (includedKeys.includes(key)) {
+                    if (prevOrder[key] !== newOrder[key]) {
+                        differences.push({
+                            key: key,
+                            previousValue: prevOrder[key],
+                            currentValue: newOrder[key] === undefined ? "Key not present in New Update" : newOrder[key]
+                        });
+                    }
+                }
+            });
+            if (differences.length == 0)
+                return;
+            let diffrence = differences[0];
+            if (diffrence.key != "positionAmount") {
+                return;
+            }
+            let orderQty = Number(diffrence.currentValue) - Number(diffrence.previousValue);
+            let OrderType = orderQty > 0 ? BinanceEnum_1.SignalTypeEnum.RE_ENTRY : BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE;
+            let strategyService = this.strategyService;
+            let botName = this.botDto.BotName;
+            let botSlag = this.botDto.strategySlug;
+            let order = newOrder;
+            let orderPayload = {
+                copyOrderId: `${botName}-${order.id}`,
+                isolated: Boolean(order.isolated),
+                leverage: order.leverage,
+                price: order.entryPrice,
+                quantity: Math.abs(orderQty),
+                side: order.positionSide.toUpperCase(),
+                signalType: OrderType,
+                symbol: order.symbol,
+                type: "MARKET"
+            };
+            await strategyService.handleWebHook(botSlag, orderPayload);
+            let message = `Order Updated for ${order.symbol} with ${order.positionAmount} quantity`;
+            (0, botMail_utils_1.sendSuccessNotificationToAdmins)(this.mailNotificationService, message);
+        }
+        catch (err) {
+            console.error(`Error Occured on order update in ${this.botDto.BotName} Bot!`, err);
+            let message = `Order Update for ${this.botDto.BotName} Bot Error : ${err.message}`;
+            (0, botMail_utils_1.sendErrorNotificationToAdmins)(this.mailNotificationService, message);
+        }
+    }
+    async handleCloseOrder(order) {
+        try {
+            let strategyService = this.strategyService;
+            let botName = this.botDto.BotName;
+            let botSlag = this.botDto.strategySlug;
+            let orderPayload = {
+                copyOrderId: `${botName}-${order.id}`,
+                isolated: Boolean(order.isolated),
+                leverage: order.leverage,
+                price: order.entryPrice,
+                quantity: order.positionAmount,
+                side: order.positionSide.toUpperCase(),
+                signalType: BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE,
+                symbol: order.symbol,
+                type: "MARKET"
+            };
+            await strategyService.handleWebHook(botSlag, orderPayload);
+            let message = `Order Closed for ${order.symbol} with ${order.positionAmount} quantity`;
+            (0, botMail_utils_1.sendSuccessNotificationToAdmins)(this.mailNotificationService, message);
+        }
+        catch (err) {
+            console.error(`Error Occured on order close in ${this.botDto.BotName} Bot!`, err);
+            let message = `Order Closed for ${order.symbol} Error : ${err.message}`;
+            (0, botMail_utils_1.sendErrorNotificationToAdmins)(this.mailNotificationService, message);
+        }
+    }
+    async updateBotDb(id, payload) {
+        try {
+            await this.BotModel.updateOne({ _id: id }, payload);
+        }
+        catch (err) {
+            let message = `Error Occured while updating ${this.botDto.BotName} bot in database Error:\n${err.message}`;
+            (0, botMail_utils_1.sendErrorNotificationToAdmins)(this.mailNotificationService, message);
+        }
+    }
 }
 exports.ScrapWorker = ScrapWorker;
-async function handleCreateOrder(order, Instace, botDto) {
-    try {
-        let strategyService = Instace.strategyService;
-        let botName = botDto.BotName;
-        let botSlag = botDto.strategySlug;
-        let orderPayload = {
-            copyOrderId: `${botName}-${order.id}`,
-            isolated: Boolean(order.isolated),
-            leverage: order.leverage,
-            price: order.entryPrice,
-            quantity: order.positionAmount,
-            side: order.positionSide.toUpperCase(),
-            signalType: BinanceEnum_1.SignalTypeEnum.NEW,
-            symbol: order.symbol,
-            type: "LIMIT"
-        };
-        await strategyService.handleWebHook(botSlag, orderPayload);
-        await Instace.mailNotificationService.sendNotificationToAllAdmins({
-            subject: "New Order Created",
-            message: `New Order Created for ${order.symbol} with ${order.positionAmount} quantity`,
-            type: mail_type_enum_1.MailNotificationTypeEnum.SUCCESS,
-        });
-    }
-    catch (err) {
-        console.error(`Error Occured on order creation in ${botDto.BotName} Bot!`, err);
-        await Instace.mailNotificationService.sendNotificationToAllAdmins({
-            subject: "Order Create Error",
-            message: `Order Create for ${botDto.BotName} Bot Error : ${err.message}`,
-            type: mail_type_enum_1.MailNotificationTypeEnum.ERROR,
-        });
-    }
-}
-async function handleUpdateOrder(prevOrder, newOrder, Instace, botDto) {
-    try {
-        let differences = [];
-        let includedKeys = ["positionAmount"];
-        Object.keys(prevOrder).forEach(key => {
-            if (includedKeys.includes(key)) {
-                if (prevOrder[key] !== newOrder[key]) {
-                    differences.push({
-                        key: key,
-                        previousValue: prevOrder[key],
-                        currentValue: newOrder[key] === undefined ? "Key not present in New Update" : newOrder[key]
-                    });
-                }
-            }
-        });
-        if (differences.length == 0)
-            return;
-        let diffrence = differences[0];
-        if (diffrence.key != "positionAmount") {
-            return;
-        }
-        let orderQty = Number(diffrence.currentValue) - Number(diffrence.previousValue);
-        let OrderType = orderQty > 0 ? BinanceEnum_1.SignalTypeEnum.RE_ENTRY : BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE;
-        let strategyService = Instace.strategyService;
-        let botName = botDto.BotName;
-        let botSlag = botDto.strategySlug;
-        let order = newOrder;
-        let orderPayload = {
-            copyOrderId: `${botName}-${order.id}`,
-            isolated: Boolean(order.isolated),
-            leverage: order.leverage,
-            price: order.entryPrice,
-            quantity: Math.abs(orderQty),
-            side: order.positionSide.toUpperCase(),
-            signalType: OrderType,
-            symbol: order.symbol,
-            type: "MARKET"
-        };
-        await strategyService.handleWebHook(botSlag, orderPayload);
-        await Instace.mailNotificationService.sendNotificationToAllAdmins({
-            subject: "Order Updated",
-            message: `Order Updated for ${order.symbol} with ${order.positionAmount} quantity`,
-            type: mail_type_enum_1.MailNotificationTypeEnum.SUCCESS,
-        });
-    }
-    catch (err) {
-        console.error(`Error Occured on order update in ${botDto.BotName} Bot!`, err);
-        await Instace.mailNotificationService.sendNotificationToAllAdmins({
-            subject: "Order Update Error",
-            message: `Order Update for ${botDto.BotName} Bot Error : ${err.message}`,
-            type: mail_type_enum_1.MailNotificationTypeEnum.ERROR,
-        });
-    }
-}
-async function handleCloseOrder(order, Instace, botDto) {
-    try {
-        let strategyService = Instace.strategyService;
-        let botName = botDto.BotName;
-        let botSlag = botDto.strategySlug;
-        let orderPayload = {
-            copyOrderId: `${botName}-${order.id}`,
-            isolated: Boolean(order.isolated),
-            leverage: order.leverage,
-            price: order.entryPrice,
-            quantity: order.positionAmount,
-            side: order.positionSide.toUpperCase(),
-            signalType: BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE,
-            symbol: order.symbol,
-            type: "MARKET"
-        };
-        await strategyService.handleWebHook(botSlag, orderPayload);
-        await Instace.mailNotificationService.sendNotificationToAllAdmins({
-            subject: "Order Closed",
-            message: `Order Closed for ${order.symbol} with ${order.positionAmount} quantity`,
-            type: mail_type_enum_1.MailNotificationTypeEnum.SUCCESS,
-        });
-    }
-    catch (err) {
-        console.error(`Error Occured on order close in ${botDto.BotName} Bot!`, err);
-        await Instace.mailNotificationService.sendNotificationToAllAdmins({
-            subject: "Order Closed Error",
-            message: `Order Closed for ${order.symbol} Error : ${err.message}`,
-            type: mail_type_enum_1.MailNotificationTypeEnum.ERROR,
-        });
-    }
-}
-function isValidToken(p20t, csrfToken, channelId = null) {
+function isValidToken(p2ot, csrfToken, channelId = null) {
     const requestData = (attempt = 1) => {
         return new Promise((resolve, reject) => {
             let data = JSON.stringify({
                 "strategyName": "SiderealWP",
-                "p20t": p20t,
+                "p2ot": p2ot,
                 "csrfToken": csrfToken
             });
             let config = {
@@ -322,7 +313,7 @@ function isValidToken(p20t, csrfToken, channelId = null) {
                     'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
                     'Referer': 'https://www.binance.com/en/my/dashboard',
                     'Csrftoken': csrfToken,
-                    'Cookie': `p20t=${p20t}`,
+                    'Cookie': `p2ot=${p2ot}`,
                     'Content-Type': 'application/json',
                     'Clienttype': 'web',
                     'Accept-Language': 'en-US,en;q=0.9'
@@ -331,7 +322,7 @@ function isValidToken(p20t, csrfToken, channelId = null) {
             };
             axios.request(config)
                 .then(response => resolve(response.data))
-                .catch(error => {
+                .catch(async (error) => {
                 if (error?.response?.data?.code === '100002001') {
                     reject(error);
                 }

@@ -5,5 +5,6 @@ export declare class CreateBotDto {
     readonly strategyId: string;
     readonly p2ot: string;
     readonly csrfToken: string;
-    readonly isPublic: number;
+    readonly isPublic: boolean;
+    readonly runningOrders: number;
 }

@@ -70,6 +70,14 @@ __decorate([
         example: true,
         required: true
     }),
-    __metadata("design:type", Number)
+    __metadata("design:type", Boolean)
 ], CreateBotDto.prototype, "isPublic", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: Boolean,
+        description: 'Runnig Order Of this bot?',
+        example: 0,
+    }),
+    __metadata("design:type", Number)
+], CreateBotDto.prototype, "runningOrders", void 0);
 //# sourceMappingURL=create-bot.dto.js.map

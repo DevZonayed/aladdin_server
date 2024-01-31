@@ -8,7 +8,6 @@ import { CreateBotDto } from '../dto/create-bot.dto';
 import { UpdateBotDto } from '../dto/update-bot.dto';
 import { Bot } from '../entities/bot.entity';
 import { WorkerService } from '../worker/service/worker.service';
-import { NotificationService } from 'src/notification/mail/service/notification.service';
 
 @Injectable()
 export class BotService {
@@ -17,7 +16,6 @@ export class BotService {
     private readonly BotModel: Model<Bot>,
     private readonly workerService: WorkerService,
     private readonly strategyService: StrategyService,
-    private readonly mailNotificationService: NotificationService,
   ) { }
 
   async create(
@@ -58,7 +56,6 @@ export class BotService {
   async handleStartBot(id: string) {
     try {
       const bot = await this.BotModel.findById(id);
-
       if (!bot) {
         return createApiResponse(
           HttpStatus.NOT_FOUND,
@@ -69,10 +66,8 @@ export class BotService {
       }
 
       let result = await this.workerService.handleStartWorker(bot);
-      bot.startAt = new Date();
-      bot.isRunning = true;
-      await bot.save();
       return result;
+
 
     } catch (err) {
       return createApiResponse(
@@ -96,8 +91,6 @@ export class BotService {
         );
       }
       let result = await this.workerService.handleStopWorker(bot);
-      bot.isRunning = false;
-      await bot.save();
       return result;
     } catch (err) {
       return createApiResponse(
@@ -109,6 +102,20 @@ export class BotService {
     }
   }
 
+  async getBotStatus(id: string) {
+    const bot = await this.BotModel.findById(id);
+    if (!bot) {
+      return createApiResponse(
+        HttpStatus.NOT_FOUND,
+        NO_DATA_FOUND,
+        STRATEGY_BOT_NOT_FOUND,
+        null,
+      );
+    }
+
+    let result = await this.workerService.getBotStatus(bot);
+    return result;
+  }
   async findAll(
     page: number,
     limit: number,
@@ -228,14 +235,17 @@ export class BotService {
     }
   }
 
-  update(
+  async update(
     id: string,
     updateBotDto: UpdateBotDto,
   ) {
     try {
-      const data = this.BotModel
+      const data = await this.BotModel
         .findByIdAndUpdate(id, updateBotDto, { new: true })
         .exec();
+
+      // Restart Bot
+      await this.handleStartBot(data.BotName)
       return createApiResponse(
         HttpStatus.OK,
         SUCCESS_RESPONSE,

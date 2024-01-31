@@ -8,6 +8,7 @@ export declare class BotController {
     create(createStrategyDto: CreateBotDto, requestData: Request): Promise<any>;
     start(requestData: Request, id: string): Promise<any>;
     stop(requestData: Request, id: string): Promise<any>;
+    getBotStatus(requestData: Request, id: string): Promise<any>;
     findAll(page: number, limit: number, order: string, sort: SortBy, search: string, startDate: Date, endDate: Date): Promise<any>;
     findOne(id: string): Promise<{
         statusCode: import("@nestjs/common").HttpStatus;

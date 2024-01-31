@@ -27,6 +27,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Cache } from 'cache-manager';
 import { Model, Types } from 'mongoose';
 import { BinanceService } from 'src/binance/service/binance.service';
+import { SortBy } from 'src/common/enum/enum-sort-by';
 import { UpdateUserCredentialsDto } from 'src/user/dto/update-user-credentials.dto';
 import { CreateSystemAdministratorDto } from '../../auth/dto/create-system-administrator.dto';
 import { UserLoginDto } from '../../auth/dto/user-login.dto';
@@ -51,14 +52,25 @@ export declare class UserService {
     }, import("mongoose").Document<unknown, {}, User> & User & {
         _id: Types.ObjectId;
     }, {}, User, "findOne">;
-    findAll(): string;
-    findOne(id: number): string;
-    update(id: any, updateUserDto: UpdateUserDto): import("mongoose").Query<import("mongoose").Document<unknown, {}, User> & User & {
-        _id: Types.ObjectId;
-    }, import("mongoose").Document<unknown, {}, User> & User & {
-        _id: Types.ObjectId;
-    }, {}, User, "findOneAndUpdate">;
-    remove(id: number): string;
+    findAll(page: number, limit: number, order: string, sort: SortBy, search: string, startDate: Date, endDate: Date): Promise<any>;
+    findOne(id: string): Promise<{
+        statusCode: HttpStatus;
+        response: string;
+        message: string;
+        payload: any;
+    }>;
+    update(id: string, updateUserDto: UpdateUserDto): Promise<{
+        statusCode: HttpStatus;
+        response: string;
+        message: string;
+        payload: any;
+    }>;
+    remove(id: string): Promise<{
+        statusCode: HttpStatus;
+        response: string;
+        message: string;
+        payload: any;
+    }>;
     login(userLoginDto: UserLoginDto): Promise<{
         statusCode: HttpStatus;
         response: string;

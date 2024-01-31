@@ -44,6 +44,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Bot.prototype, "isPublic", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: Number, default: false }),
+    __metadata("design:type", Number)
+], Bot.prototype, "runningOrders", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: Boolean, default: false }),
     __metadata("design:type", Boolean)
 ], Bot.prototype, "isRunning", void 0);

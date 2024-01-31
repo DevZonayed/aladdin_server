@@ -24,6 +24,9 @@ export class Bot extends Document {
   @Prop({ type: Boolean, default: false })
   isPublic: boolean
 
+  @Prop({ type: Number, default: false })
+  runningOrders: number
+
   @Prop({ type: Boolean, default: false })
   isRunning: boolean;
 
