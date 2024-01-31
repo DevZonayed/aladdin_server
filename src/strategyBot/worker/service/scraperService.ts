@@ -222,8 +222,8 @@ export class ScrapWorker {
     }
 
     scrapAndUpdate() {
-        // mockprocessCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
-        this.processCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
+        mockprocessCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
+            // this.processCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
             .then(res => {
                 this.updateTime = Date.now();
                 this.errorMessage = null;
@@ -246,9 +246,9 @@ export class ScrapWorker {
             let orderPayload: OrderWebHookDto = {
                 copyOrderId: `${botName}-${order.id}`,
                 isolated: Boolean(order.isolated),
-                leverage: order.leverage,
-                price: order.entryPrice,
-                quantity: order.positionAmount,
+                leverage: Number(order.leverage),
+                price: Number(order.entryPrice),
+                quantity: Math.abs(Number(order.positionAmount)),
                 side: order.positionSide.toUpperCase(),
                 signalType: SignalTypeEnum.NEW,
                 symbol: order.symbol,
@@ -304,9 +304,9 @@ export class ScrapWorker {
             let orderPayload: OrderWebHookDto = {
                 copyOrderId: `${botName}-${order.id}`,
                 isolated: Boolean(order.isolated),
-                leverage: order.leverage,
-                price: order.entryPrice,
-                quantity: Math.abs(orderQty),
+                leverage: Number(order.leverage),
+                price: Number(order.entryPrice),
+                quantity: Math.abs(Number(orderQty)),
                 side: order.positionSide.toUpperCase(),
                 signalType: OrderType,
                 symbol: order.symbol,
@@ -335,9 +335,9 @@ export class ScrapWorker {
             let orderPayload: OrderWebHookDto = {
                 copyOrderId: `${botName}-${order.id}`,
                 isolated: Boolean(order.isolated),
-                leverage: order.leverage,
-                price: order.entryPrice,
-                quantity: order.positionAmount,
+                leverage: Number(order.leverage),
+                price: Number(order.entryPrice),
+                quantity: Math.abs(Number(order.positionAmount)),
                 side: order.positionSide.toUpperCase(),
                 signalType: SignalTypeEnum.PARTIAL_CLOSE,
                 symbol: order.symbol,

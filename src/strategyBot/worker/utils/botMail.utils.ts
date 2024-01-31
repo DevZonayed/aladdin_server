@@ -29,6 +29,6 @@ export async function sendSuccessNotificationToAdmins(mailNotificationService: N
     await mailNotificationService.sendNotificationToAllAdmins({
         subject: "Alaadin Info Success",
         message: `${message}`,
-        type: MailNotificationTypeEnum.WARNING,
+        type: MailNotificationTypeEnum.SUCCESS,
     })
 }

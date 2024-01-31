@@ -306,11 +306,17 @@ export class BinanceService {
                     && side == PositionSideEnum.LONG
                 ) {
                     order = await this.executeFutureBuyOrder(instance, symbol, side, type, quantity, price);
+                    if (order?.code) {
+                        throw Error(order.msg)
+                    }
                 } else if (
                     (signalType == SignalTypeEnum.NEW || signalType == SignalTypeEnum.RE_ENTRY)
                     && side == PositionSideEnum.SHORT
                 ) {
                     order = await this.executeFutureSellOrder(instance, symbol, side, type, quantity, price);
+                    if (order?.code) {
+                        throw Error(order.msg)
+                    }
                 } else if (
                     signalType == SignalTypeEnum.PARTIAL_CLOSE
                     && side == PositionSideEnum.LONG
@@ -473,11 +479,7 @@ export class BinanceService {
                     positionSide: side,
                     timestamp: Date.now()
                 });
-            if (result?.code) {
-                throw new Error(result.msg)
-            } else {
-                return result
-            }
+            return result
 
         } catch (error) {
             console.log(error)
@@ -512,11 +514,8 @@ export class BinanceService {
                     timestamp: Date.now()
                 });
 
-            if (result?.code) {
-                throw new Error(result.msg)
-            } else {
-                return result
-            }
+            return result
+
 
         } catch (error) {
             throw new Error("Order placement failed Error : " + error.message);
