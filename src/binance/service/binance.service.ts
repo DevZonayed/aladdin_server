@@ -33,8 +33,6 @@ export class BinanceService {
     async checkBalance(apiKey: string, secretKey: string) {
         return await this.executeBinanceApiAction(apiKey, secretKey, async (binance, binanceTest) => {
             try {
-
-
                 const originalApiPromise = this.safePromiseBuild(binance.futuresBalance(), 'Original API');
                 const testnetApiPromise = this.safePromiseBuild(binanceTest.futuresBalance(), 'Testnet API');
 
@@ -482,7 +480,8 @@ export class BinanceService {
             }
 
         } catch (error) {
-            throw new Error("Order placement failed");
+            console.log(error)
+            throw new Error("Order placement failed Error: " + error.message);
         }
     }
 
@@ -520,8 +519,7 @@ export class BinanceService {
             }
 
         } catch (error) {
-            console.error("Error placing order: ", error);
-            throw new Error("Order placement failed");
+            throw new Error("Order placement failed Error : " + error.message);
         }
     }
 

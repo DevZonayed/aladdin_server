@@ -43,6 +43,7 @@ class BinanceExchaneService {
         return parseFloat(quantity.toFixed(precision));
     }
     async formatPrice(symbol, price) {
+        price = parseFloat(price);
         const exchangeInfo = await this.getExchangeInfo();
         const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === symbol);
         if (!symbolInfo) {

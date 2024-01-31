@@ -20,6 +20,6 @@ export declare class BinanceExchaneService {
     getExchangeInfo(): Promise<ExchangeInfo>;
     getPrecisionFromFilter(filters: any, filterType: any): number;
     formatQuantity(symbol: string, quantity: number): Promise<number>;
-    formatPrice(symbol: string, price: number): Promise<number>;
+    formatPrice(symbol: string, price: any): Promise<number>;
 }
 export {};

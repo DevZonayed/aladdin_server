@@ -55,12 +55,12 @@ export declare class StrategyService {
         message: string;
         payload: any;
     }>;
-    update(id: string, updateStrategyDto: UpdateStrategyDto): {
+    update(id: string, updateStrategyDto: UpdateStrategyDto): Promise<{
         statusCode: HttpStatus;
         response: string;
         message: string;
         payload: any;
-    };
+    }>;
     remove(id: string): Promise<{
         statusCode: HttpStatus;
         response: string;

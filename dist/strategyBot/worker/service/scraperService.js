@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScrapWorker = void 0;
 const BinanceEnum_1 = require("../../../binance/enum/BinanceEnum");
+const dummySignal_1 = require("../data/dummySignal");
 const botMail_utils_1 = require("../utils/botMail.utils");
 const watcherService_1 = require("./watcherService");
 const axios = require("axios");
@@ -201,8 +202,12 @@ class ScrapWorker {
                 symbol: order.symbol,
                 type: "LIMIT"
             };
-            await strategyService.handleWebHook(botSlag, orderPayload);
+            console.log("New Order In Event recived!");
+            let result = await strategyService.handleWebHook(botSlag, orderPayload);
             let message = `New Order Created for ${order.symbol} with ${order.positionAmount} quantity`;
+            if (typeof result.payload == "string") {
+                message += `\n but something went wrong, it returns: ${result.payload}`;
+            }
             (0, botMail_utils_1.sendSuccessNotificationToAdmins)(this.mailNotificationService, message);
         }
         catch (err) {
@@ -249,8 +254,11 @@ class ScrapWorker {
                 symbol: order.symbol,
                 type: "MARKET"
             };
-            await strategyService.handleWebHook(botSlag, orderPayload);
+            let result = await strategyService.handleWebHook(botSlag, orderPayload);
             let message = `Order Updated for ${order.symbol} with ${order.positionAmount} quantity`;
+            if (typeof result.payload == "string") {
+                message += `\n but something went wrong, it returns: ${result.payload}`;
+            }
             (0, botMail_utils_1.sendSuccessNotificationToAdmins)(this.mailNotificationService, message);
         }
         catch (err) {
@@ -275,8 +283,11 @@ class ScrapWorker {
                 symbol: order.symbol,
                 type: "MARKET"
             };
-            await strategyService.handleWebHook(botSlag, orderPayload);
+            let result = await strategyService.handleWebHook(botSlag, orderPayload);
             let message = `Order Closed for ${order.symbol} with ${order.positionAmount} quantity`;
+            if (typeof result.payload == "string") {
+                message += `\n but something went wrong, it returns: ${result.payload}`;
+            }
             (0, botMail_utils_1.sendSuccessNotificationToAdmins)(this.mailNotificationService, message);
         }
         catch (err) {
@@ -336,5 +347,15 @@ function isValidToken(p2ot, csrfToken, channelId = null) {
         });
     };
     return requestData();
+}
+let index = 0;
+function mockprocessCopyTradeRequest(...arg) {
+    return new Promise(resolve => {
+        let currentRes = dummySignal_1.dummyOrderData[index];
+        index++;
+        resolve({
+            data: currentRes
+        });
+    });
 }
 //# sourceMappingURL=scraperService.js.map

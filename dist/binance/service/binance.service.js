@@ -401,7 +401,8 @@ let BinanceService = class BinanceService {
             }
         }
         catch (error) {
-            throw new Error("Order placement failed");
+            console.log(error);
+            throw new Error("Order placement failed Error: " + error.message);
         }
     }
     async executeFutureSellOrder(instance, symbol, side, type, quantity, price) {
@@ -429,8 +430,7 @@ let BinanceService = class BinanceService {
             }
         }
         catch (error) {
-            console.error("Error placing order: ", error);
-            throw new Error("Order placement failed");
+            throw new Error("Order placement failed Error : " + error.message);
         }
     }
     generateFutureOrdersResponse(userId, data, orderDto, strategy, isSuccess, ratio = null) {

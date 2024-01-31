@@ -124,9 +124,9 @@ let StrategyService = class StrategyService {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
-    update(id, updateStrategyDto) {
+    async update(id, updateStrategyDto) {
         try {
-            const data = this.StrategyModel
+            const data = await this.StrategyModel
                 .findByIdAndUpdate(id, updateStrategyDto, { new: true })
                 .exec();
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);

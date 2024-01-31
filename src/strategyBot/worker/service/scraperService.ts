@@ -4,6 +4,7 @@ import { NotificationService } from "src/notification/mail/service/notification.
 import { OrderWebHookDto } from "src/strategy/dto/order_webhook-dto";
 import { StrategyService } from "src/strategy/service/strategy.service";
 import { Bot } from "src/strategyBot/entities/bot.entity";
+import { dummyOrderData } from "../data/dummySignal";
 import { sendErrorNotificationToAdmins, sendInfoNotificationToAdmins, sendSuccessNotificationToAdmins } from "../utils/botMail.utils";
 import { DataWatcher } from "./watcherService";
 const axios = require("axios")
@@ -221,6 +222,7 @@ export class ScrapWorker {
     }
 
     scrapAndUpdate() {
+        // mockprocessCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
         this.processCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
             .then(res => {
                 this.updateTime = Date.now();
@@ -252,8 +254,12 @@ export class ScrapWorker {
                 symbol: order.symbol,
                 type: "LIMIT"
             }
-            await strategyService.handleWebHook(botSlag, orderPayload)
+            console.log("New Order In Event recived!")
+            let result: any = await strategyService.handleWebHook(botSlag, orderPayload)
             let message = `New Order Created for ${order.symbol} with ${order.positionAmount} quantity`
+            if (typeof result.payload == "string") {
+                message += `\n but something went wrong, it returns: ${result.payload}`
+            }
             sendSuccessNotificationToAdmins(this.mailNotificationService, message)
 
         } catch (err) {
@@ -306,9 +312,12 @@ export class ScrapWorker {
                 symbol: order.symbol,
                 type: "MARKET"
             }
-            await strategyService.handleWebHook(botSlag, orderPayload)
+            let result: any = await strategyService.handleWebHook(botSlag, orderPayload)
 
             let message = `Order Updated for ${order.symbol} with ${order.positionAmount} quantity`;
+            if (typeof result.payload == "string") {
+                message += `\n but something went wrong, it returns: ${result.payload}`
+            }
             sendSuccessNotificationToAdmins(this.mailNotificationService, message)
         } catch (err) {
             console.error(`Error Occured on order update in ${this.botDto.BotName} Bot!`, err);
@@ -334,9 +343,11 @@ export class ScrapWorker {
                 symbol: order.symbol,
                 type: "MARKET"
             }
-            await strategyService.handleWebHook(botSlag, orderPayload)
-
+            let result: any = await strategyService.handleWebHook(botSlag, orderPayload)
             let message = `Order Closed for ${order.symbol} with ${order.positionAmount} quantity`
+            if (typeof result.payload == "string") {
+                message += `\n but something went wrong, it returns: ${result.payload}`
+            }
             sendSuccessNotificationToAdmins(this.mailNotificationService, message)
         } catch (err) {
             console.error(`Error Occured on order close in ${this.botDto.BotName} Bot!`, err);
@@ -414,4 +425,18 @@ function isValidToken(p2ot, csrfToken, channelId = null) {
     };
 
     return requestData();
+}
+
+
+
+// Mock Function
+let index = 0;
+function mockprocessCopyTradeRequest(...arg) {
+    return new Promise(resolve => {
+        let currentRes = dummyOrderData[index]
+        index++
+        resolve({
+            data: currentRes
+        })
+    })
 }

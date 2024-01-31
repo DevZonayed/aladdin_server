@@ -192,12 +192,12 @@ export class StrategyService {
     }
   }
 
-  update(
+  async update(
     id: string,
     updateStrategyDto: UpdateStrategyDto,
   ) {
     try {
-      const data = this.StrategyModel
+      const data = await this.StrategyModel
         .findByIdAndUpdate(id, updateStrategyDto, { new: true })
         .exec();
       return createApiResponse(
