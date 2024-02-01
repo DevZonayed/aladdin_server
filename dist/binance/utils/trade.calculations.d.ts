@@ -5,3 +5,4 @@ export declare function calculateMyTradeAmount(traderTradeAmount: any, traderBal
     tradeAmount: number;
     ratio: any;
 };
+export declare function calculatePercentage(amount: any, percentage: any): number;

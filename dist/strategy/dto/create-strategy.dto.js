@@ -101,7 +101,7 @@ __decorate([
         required: true
     }),
     __metadata("design:type", Number)
-], CreateStrategyDto.prototype, "tradeMaxAmount", void 0);
+], CreateStrategyDto.prototype, "tradeMaxAmountPercentage", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: Number,

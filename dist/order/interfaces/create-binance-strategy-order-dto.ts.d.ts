@@ -27,7 +27,7 @@ export interface CreateBinanceStrategyOrderDto {
     strategyData: {
         _id: Types.ObjectId;
         capital: number;
-        tradeMaxAmount: number;
+        tradeMaxAmountPercentage: number;
         tradeMaxLeverage: number;
         bannedAssets: string[];
         allowAssets: string[];

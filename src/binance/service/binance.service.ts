@@ -11,7 +11,7 @@ import { Strategy } from 'src/strategy/entities/strategy.entity';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/service/user.service';
 import { PositionSideEnum, PositionTypeEnum, SignalTypeEnum } from '../enum/BinanceEnum';
-import { calculateMyTradeAmount, calculateQuantity } from '../utils/trade.calculations';
+import { calculateMyTradeAmount, calculatePercentage, calculateQuantity } from '../utils/trade.calculations';
 import { BinanceExchaneService } from './exchangeInfo.service';
 const Binance = require('node-binance-api');
 
@@ -256,13 +256,13 @@ export class BinanceService {
                 symbol = symbol.toUpperCase();
                 side = side.toUpperCase();
                 signalType = signalType.toUpperCase();
-                // type = type.toUpperCase();
+                type = type.toUpperCase();
                 let newOrderType = strategy.newOrderType || "MARKET";
                 let partialOrderType = strategy.partialOrderType || "MARKET";
 
 
                 if (!Object.values(SignalTypeEnum).includes(signalType as SignalTypeEnum)) {
-                    throw new Error("Invalid Signal Type");
+                    throw new Error("Invalid Signal Type, Signal Type is " + signalType);
                 }
 
 
@@ -271,6 +271,7 @@ export class BinanceService {
                 let prevOrder = this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, userId, orderDto.symbol, orderDto.side);
 
                 let [binanceBalanceRes, prevOrderRes] = await Promise.all([this.safePromiseBuild(binanceBalance), this.safePromiseBuild(prevOrder)]);;
+
                 if (!binanceBalanceRes.success || binanceBalanceRes?.result?.code) {
                     throw new Error("Binance Balance Fetch Failed " + binanceBalanceRes.error?.message || binanceBalanceRes?.result?.msg);
                 } else {
@@ -286,7 +287,7 @@ export class BinanceService {
                 let rootTradeAmount = Number(price) * Number(quantity);
                 let rootTradeCapital = Number(strategy.capital);
                 let myCapital = Number(binanceBalanceRes?.balance);
-                let maxTradeAmount = Number(strategy.tradeMaxAmount);
+                let maxTradeAmount = calculatePercentage(myCapital, Number(strategy.tradeMaxAmountPercentage));
                 let orderRatio = prevOrderRes?.data?.initialOrderRatio ? Number(prevOrderRes.data.initialOrderRatio) : null
 
 
@@ -350,7 +351,7 @@ export class BinanceService {
                     }
 
                 } else {
-                    throw new Error("Invalid Signal Type");
+                    throw new Error("Invalid Signal Type , Sended Signal Type : " + signalType);
                 }
 
                 return this.generateFutureOrdersResponse(userId, order, orderDto, strategy, true, ratio);

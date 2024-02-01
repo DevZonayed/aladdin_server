@@ -54,7 +54,7 @@ __decorate([
 __decorate([
     (0, mongoose_1.Prop)({ type: Number, required: true }),
     __metadata("design:type", Number)
-], Strategy.prototype, "tradeMaxAmount", void 0);
+], Strategy.prototype, "tradeMaxAmountPercentage", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: Number, required: true }),
     __metadata("design:type", Number)

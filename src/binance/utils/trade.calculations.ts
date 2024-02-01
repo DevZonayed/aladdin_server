@@ -55,3 +55,10 @@ export function calculateMyTradeAmount(traderTradeAmount, traderBalance, myBalan
         }
     }
 }
+
+
+export function calculatePercentage(amount: any, percentage: any): number {
+    amount = Number(amount);
+    percentage = Number(percentage);
+    return (amount * percentage) / 100;
+}

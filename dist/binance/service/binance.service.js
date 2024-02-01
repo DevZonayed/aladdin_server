@@ -225,10 +225,11 @@ let BinanceService = class BinanceService {
                 symbol = symbol.toUpperCase();
                 side = side.toUpperCase();
                 signalType = signalType.toUpperCase();
+                type = type.toUpperCase();
                 let newOrderType = strategy.newOrderType || "MARKET";
                 let partialOrderType = strategy.partialOrderType || "MARKET";
                 if (!Object.values(BinanceEnum_1.SignalTypeEnum).includes(signalType)) {
-                    throw new Error("Invalid Signal Type");
+                    throw new Error("Invalid Signal Type, Signal Type is " + signalType);
                 }
                 let binanceBalance = this.userService.getBinanceBalance(userId);
                 let prevOrder = this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, userId, orderDto.symbol, orderDto.side);
@@ -247,7 +248,7 @@ let BinanceService = class BinanceService {
                 let rootTradeAmount = Number(price) * Number(quantity);
                 let rootTradeCapital = Number(strategy.capital);
                 let myCapital = Number(binanceBalanceRes?.balance);
-                let maxTradeAmount = Number(strategy.tradeMaxAmount);
+                let maxTradeAmount = (0, trade_calculations_1.calculatePercentage)(myCapital, Number(strategy.tradeMaxAmountPercentage));
                 let orderRatio = prevOrderRes?.data?.initialOrderRatio ? Number(prevOrderRes.data.initialOrderRatio) : null;
                 let { tradeAmount: accauntTradeAmount, ratio } = (0, trade_calculations_1.calculateMyTradeAmount)(rootTradeAmount, rootTradeCapital, myCapital, maxTradeAmount, orderRatio);
                 quantity = (0, trade_calculations_1.calculateQuantity)(accauntTradeAmount, price);
@@ -298,7 +299,7 @@ let BinanceService = class BinanceService {
                     }
                 }
                 else {
-                    throw new Error("Invalid Signal Type");
+                    throw new Error("Invalid Signal Type , Sended Signal Type : " + signalType);
                 }
                 return this.generateFutureOrdersResponse(userId, order, orderDto, strategy, true, ratio);
             }

@@ -82,7 +82,7 @@ export class CreateStrategyDto {
     example: 200,
     required: true
   })
-  readonly tradeMaxAmount: number;
+  readonly tradeMaxAmountPercentage: number;
 
   @ApiProperty({
     type: Number,

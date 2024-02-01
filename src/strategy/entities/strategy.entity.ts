@@ -31,7 +31,7 @@ export class Strategy extends Document {
   minimumCapitalToSubscribe: number
 
   @Prop({ type: Number, required: true })
-  tradeMaxAmount: number
+  tradeMaxAmountPercentage: number
 
   @Prop({ type: Number, required: true })
   tradeMaxLeverage: number
