@@ -97,7 +97,7 @@ __decorate([
     (0, swagger_1.ApiProperty)({
         type: Number,
         description: 'Maximum amount for per trade',
-        example: 200,
+        example: 10,
         required: true
     }),
     __metadata("design:type", Number)

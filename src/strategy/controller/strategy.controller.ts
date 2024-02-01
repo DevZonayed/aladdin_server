@@ -90,8 +90,6 @@ export class StrategyController {
 
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('StrategyImage'))
   async update(
     @Param('id') id: string,
     @Body() updateStrategyDto: UpdateStrategyDto,
