@@ -5,6 +5,8 @@ export declare class CreateStrategyDto {
     readonly allowAssets: string[];
     readonly apiSlug: string;
     readonly capital: number;
+    readonly newOrderType: string;
+    readonly partialOrderType: string;
     readonly minimumCapitalToSubscribe: number;
     readonly tradeMaxAmount: number;
     readonly tradeMaxLeverage: number;

@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateStrategyDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const BinanceEnum_1 = require("../../binance/enum/BinanceEnum");
 class CreateStrategyDto {
 }
 exports.CreateStrategyDto = CreateStrategyDto;
@@ -65,6 +66,24 @@ __decorate([
     }),
     __metadata("design:type", Number)
 ], CreateStrategyDto.prototype, "capital", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Order type for new order',
+        example: BinanceEnum_1.PositionTypeEnum.LIMIT,
+        required: true,
+    }),
+    __metadata("design:type", String)
+], CreateStrategyDto.prototype, "newOrderType", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Order type for partial Entry',
+        example: BinanceEnum_1.PositionTypeEnum.LIMIT,
+        required: true,
+    }),
+    __metadata("design:type", String)
+], CreateStrategyDto.prototype, "partialOrderType", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: Number,

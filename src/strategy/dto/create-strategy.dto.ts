@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { PositionTypeEnum } from 'src/binance/enum/BinanceEnum';
 
 export class CreateStrategyDto {
 
@@ -49,6 +50,22 @@ export class CreateStrategyDto {
     required: true
   })
   readonly capital: number;
+
+  @ApiProperty({
+    type: String,
+    description: 'Order type for new order',
+    example: PositionTypeEnum.LIMIT,
+    required: true,
+  })
+
+  readonly newOrderType: string;
+  @ApiProperty({
+    type: String,
+    description: 'Order type for partial Entry',
+    example: PositionTypeEnum.LIMIT,
+    required: true,
+  })
+  readonly partialOrderType: string;
 
 
   @ApiProperty({

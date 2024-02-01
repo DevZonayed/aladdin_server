@@ -30,6 +30,8 @@ export declare class Strategy extends Document {
     allowAssets: string[];
     apiSlug: string;
     capital: number;
+    newOrderType: string;
+    partialOrderType: string;
     minimumCapitalToSubscribe: number;
     tradeMaxAmount: number;
     tradeMaxLeverage: number;

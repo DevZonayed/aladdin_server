@@ -225,7 +225,8 @@ let BinanceService = class BinanceService {
                 symbol = symbol.toUpperCase();
                 side = side.toUpperCase();
                 signalType = signalType.toUpperCase();
-                type = type.toUpperCase();
+                let newOrderType = strategy.newOrderType || "MARKET";
+                let partialOrderType = strategy.partialOrderType || "MARKET";
                 if (!Object.values(BinanceEnum_1.SignalTypeEnum).includes(signalType)) {
                     throw new Error("Invalid Signal Type");
                 }
@@ -256,6 +257,7 @@ let BinanceService = class BinanceService {
                 let order = "";
                 if ((signalType == BinanceEnum_1.SignalTypeEnum.NEW || signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY)
                     && side == BinanceEnum_1.PositionSideEnum.LONG) {
+                    let type = signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY ? partialOrderType : newOrderType;
                     order = await this.executeFutureBuyOrder(instance, symbol, side, type, quantity, price);
                     if (order?.code) {
                         throw Error(order.msg);
@@ -263,6 +265,7 @@ let BinanceService = class BinanceService {
                 }
                 else if ((signalType == BinanceEnum_1.SignalTypeEnum.NEW || signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY)
                     && side == BinanceEnum_1.PositionSideEnum.SHORT) {
+                    let type = signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY ? partialOrderType : newOrderType;
                     order = await this.executeFutureSellOrder(instance, symbol, side, type, quantity, price);
                     if (order?.code) {
                         throw Error(order.msg);

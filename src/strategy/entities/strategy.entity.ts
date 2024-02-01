@@ -21,6 +21,12 @@ export class Strategy extends Document {
   @Prop({ type: Number, required: true })
   capital: number
 
+  @Prop({ type: String, required: true, uppercase: true, enum: ['MARKET', 'LIMIT'] })
+  newOrderType: string
+
+  @Prop({ type: String, required: true, uppercase: true, enum: ['MARKET', 'LIMIT'] })
+  partialOrderType: string
+
   @Prop({ type: Number, required: true })
   minimumCapitalToSubscribe: number
 

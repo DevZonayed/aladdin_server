@@ -15,11 +15,6 @@ var PositionTypeEnum;
 (function (PositionTypeEnum) {
     PositionTypeEnum["MARKET"] = "MARKET";
     PositionTypeEnum["LIMIT"] = "LIMIT";
-    PositionTypeEnum["STOP_LOSS"] = "STOP_LOSS";
-    PositionTypeEnum["STOP_LOSS_LIMIT"] = "STOP_LOSS_LIMIT";
-    PositionTypeEnum["TAKE_PROFIT"] = "TAKE_PROFIT";
-    PositionTypeEnum["TAKE_PROFIT_LIMIT"] = "TAKE_PROFIT_LIMIT";
-    PositionTypeEnum["LIMIT_MAKER"] = "LIMIT_MAKER";
 })(PositionTypeEnum || (exports.PositionTypeEnum = PositionTypeEnum = {}));
 var SignalTypeEnum;
 (function (SignalTypeEnum) {
