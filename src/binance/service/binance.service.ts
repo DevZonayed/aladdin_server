@@ -351,7 +351,7 @@ export class BinanceService {
                     }
 
                 } else {
-                    throw new Error("Invalid Signal Type , Sended Signal Type : " + signalType);
+                    throw new Error("Invalid Signal Type or order side, Sended Signal Type: " + signalType + " Order Side: " + side);;
                 }
 
                 return this.generateFutureOrdersResponse(userId, order, orderDto, strategy, true, ratio);
