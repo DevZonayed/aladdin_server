@@ -117,7 +117,7 @@ export class ScrapWorker {
         this.intervalId = this.updateTimerId = this.tokenValidateTimerId = null;
         this.isWorking = false;
         // Update to db
-        await this.updateBotDb(this.botDto._id, { isRunning: true })
+        await this.updateBotDb(this.botDto._id, { isRunning: false })
         return true;
     }
 

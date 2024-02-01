@@ -83,7 +83,7 @@ class ScrapWorker {
         clearInterval(this.tokenValidateTimerId);
         this.intervalId = this.updateTimerId = this.tokenValidateTimerId = null;
         this.isWorking = false;
-        await this.updateBotDb(this.botDto._id, { isRunning: true });
+        await this.updateBotDb(this.botDto._id, { isRunning: false });
         return true;
     }
     organizeAndWatchData(row) {
