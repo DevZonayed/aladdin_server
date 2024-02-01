@@ -28,15 +28,15 @@ __decorate([
     __metadata("design:type", String)
 ], Bot.prototype, "strategySlug", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true, trim: true }),
     __metadata("design:type", String)
 ], Bot.prototype, "strategyId", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true, trim: true }),
     __metadata("design:type", String)
-], Bot.prototype, "p2ot", void 0);
+], Bot.prototype, "p20t", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, required: true }),
+    (0, mongoose_1.Prop)({ type: String, required: true, trim: true }),
     __metadata("design:type", String)
 ], Bot.prototype, "csrfToken", void 0);
 __decorate([

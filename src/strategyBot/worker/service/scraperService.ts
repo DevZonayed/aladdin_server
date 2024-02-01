@@ -17,7 +17,7 @@ export class ScrapWorker {
     private updateTime: number
     private errorMessage: string
     private scrapId: string
-    private p2ot: string
+    private p20t: string
     private csrfToken: string
     private strName: string
     private updateTimerId: any
@@ -33,8 +33,8 @@ export class ScrapWorker {
 
 
     constructor(strategyService: StrategyService, botDto, mailNotificationService: NotificationService, BotModel: Model<Bot>) {
-        let { _id: id, BotName, strategyId, p2ot, csrfToken } = botDto;
-        Object.assign(this, { id: id.toString(), strName: BotName, scrapId: strategyId, p2ot, csrfToken, strategyService, botDto, mailNotificationService, BotModel });
+        let { _id: id, BotName, strategyId, p20t, csrfToken } = botDto;
+        Object.assign(this, { id: id.toString(), strName: BotName, scrapId: strategyId, p20t, csrfToken, strategyService, botDto, mailNotificationService, BotModel });
         this.isWorking = false;
         this.updateTime = Date.now();
         this.dataWatcher = new DataWatcher();
@@ -45,7 +45,7 @@ export class ScrapWorker {
         let openOrders = this.dataWatcher.runningOrders()
         return {
             scrapId: this.scrapId,
-            p2ot: this.p2ot,
+            p20t: this.p20t,
             csrfToken: this.csrfToken,
             isWorking: this.isWorking,
             lastUpdate: new Date(this.updateTime).toLocaleString(),
@@ -78,8 +78,12 @@ export class ScrapWorker {
     async startWorker() {
         try {
             // Check Token If needed
-            !this.botDto.isPublic && await isValidToken(this.p2ot, this.csrfToken)
-            !this.botDto.isPublic && this.checkTokenValidity()
+            if (!this.botDto.isPublic) {
+                let result: any = await isValidToken(this.p20t, this.csrfToken)
+                if (!result?.success) throw new Error("Something went wrong while checking Token")
+                this.checkTokenValidity()
+            }
+
             // Update to db
             await this.updateBotDb(this.botDto._id, { isRunning: true })
 
@@ -92,6 +96,7 @@ export class ScrapWorker {
             return true;
 
         } catch (err) {
+
             let isExpaired = err?.response?.data;
             if (isExpaired) {
                 sendErrorNotificationToAdmins(this.mailNotificationService, "Token Expaired !❌❌\nPlease Update Token Immediately!")
@@ -122,7 +127,7 @@ export class ScrapWorker {
         this.dataWatcher.updateData(openPositions);
     }
 
-    processCopyTradeRequest({ scrapId, p2ot, csrfToken }) {
+    processCopyTradeRequest({ scrapId, p20t, csrfToken }) {
         return new Promise((resolve, reject) => {
             const CancelToken = axios.CancelToken;
             let cancelPreviousRequest;
@@ -134,7 +139,7 @@ export class ScrapWorker {
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Clienttype': 'web',
                 'Content-Type': 'application/json',
-                'Cookie': `p2ot=${p2ot};`,
+                'Cookie': `p20t=${p20t};`,
                 'Csrftoken': `${csrfToken}`,
                 'Referer': `https://www.binance.com/en/copy-trading/lead-details/${scrapId}`,
                 'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
@@ -167,7 +172,8 @@ export class ScrapWorker {
 
     checkTokenValidity() {
         this.tokenValidateTimerId = setInterval(() => {
-            isValidToken(this.p2ot, this.csrfToken).then(res => res).catch(err => {
+            isValidToken(this.p20t, this.csrfToken, this.botDto.BotName).then(res => res).catch(err => {
+
                 let isExpaired = err?.response?.data;
                 if (isExpaired) {
                     let message = "Token Expaired !❌❌\nPlease Update Token Immediately!"
@@ -200,7 +206,7 @@ export class ScrapWorker {
         this.dataWatcher.on("unUsualActivity", async (order) => {
             this.stopWorker();
             this.notifyTelegram("Unusual Activity Detacted!\n token checking!")
-            await isValidToken(this.p2ot, this.csrfToken,).then(res => {
+            await isValidToken(this.p20t, this.csrfToken, this.botDto.BotName).then(res => {
                 this.startWorker()
             }).catch(err => {
                 let isExpaired = err?.response?.data;
@@ -222,8 +228,8 @@ export class ScrapWorker {
     }
 
     scrapAndUpdate() {
-        // mockprocessCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
-        this.processCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
+        // mockprocessCopyTradeRequest({ scrapId: this.scrapId, p20t: this.p20t, csrfToken: this.csrfToken })
+        this.processCopyTradeRequest({ scrapId: this.scrapId, p20t: this.p20t, csrfToken: this.csrfToken })
             .then(res => {
                 this.updateTime = Date.now();
                 this.errorMessage = null;
@@ -372,27 +378,11 @@ export class ScrapWorker {
 
 
 
-
-// Handle Order Create
-
-
-// Handle Update Orders
-
-
-// Handle Order Close
-
-
-
 // Validate token
-function isValidToken(p2ot, csrfToken, channelId = null) {
+async function isValidToken(p20t, csrfToken, channelId = null) {
     const requestData = (attempt = 1) => {
         return new Promise((resolve, reject) => {
-            let data = JSON.stringify({
-                "strategyName": "SiderealWP",
-                "p2ot": p2ot,
-                "csrfToken": csrfToken
-            });
-
+            let data = JSON.stringify({});
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
@@ -401,15 +391,14 @@ function isValidToken(p2ot, csrfToken, channelId = null) {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
                     'Referer': 'https://www.binance.com/en/my/dashboard',
+                    'Cookie': `p20t=${p20t}`,
                     'Csrftoken': csrfToken,
-                    'Cookie': `p2ot=${p2ot}`,
                     'Content-Type': 'application/json',
                     'Clienttype': 'web',
                     'Accept-Language': 'en-US,en;q=0.9'
                 },
                 data: data
             };
-
             axios.request(config)
                 .then(response => resolve(response.data))
                 .catch(async error => {

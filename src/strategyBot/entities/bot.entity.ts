@@ -12,13 +12,13 @@ export class Bot extends Document {
   @Prop({ type: String, required: true })
   strategySlug: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, trim: true })
   strategyId: string;
 
-  @Prop({ type: String, required: true })
-  p2ot: string;
+  @Prop({ type: String, required: true, trim: true })
+  p20t: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, trim: true })
   csrfToken: string;
 
   @Prop({ type: Boolean, default: false })

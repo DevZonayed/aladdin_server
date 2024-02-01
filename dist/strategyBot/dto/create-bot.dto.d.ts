@@ -3,7 +3,7 @@ export declare class CreateBotDto {
     readonly description: string;
     readonly strategySlug: string;
     readonly strategyId: string;
-    readonly p2ot: string;
+    readonly p20t: string;
     readonly csrfToken: string;
     readonly isPublic: boolean;
     readonly runningOrders: number;

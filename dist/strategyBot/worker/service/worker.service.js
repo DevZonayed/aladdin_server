@@ -44,15 +44,15 @@ let WorkerService = class WorkerService {
                     return (0, constants_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Already Exist", []);
                 }
             }
-            let { csrfToken = "", isPublic, p2ot = "" } = botDetails;
-            if (!isPublic && (csrfToken == "" || p2ot == "")) {
+            let { csrfToken = "", isPublic, p20t = "" } = botDetails;
+            if (!isPublic && (csrfToken == "" || p20t == "")) {
                 let message = `${botDetails.BotName}'s Token Missing`;
                 (0, botMail_utils_1.sendErrorNotificationToAdmins)(this.mailNotificationService, message);
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, "csrfToken or p20t is missing", []);
             }
             let worker = new scraperService_1.ScrapWorker(this.strategyService, botDetails, this.mailNotificationService, this.BotModel);
             this.workerCacheService.addWorker(worker);
-            worker.startWorker();
+            await worker.startWorker();
             let message = `${botDetails.BotName} Bot Started`;
             (0, botMail_utils_1.sendInfoNotificationToAdmins)(this.mailNotificationService, message);
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Worker Started Successfully", []);

@@ -50,9 +50,9 @@ export class WorkerService {
                 }
             }
 
-            let { csrfToken = "", isPublic, p2ot = "" } = botDetails;
+            let { csrfToken = "", isPublic, p20t = "" } = botDetails;
 
-            if (!isPublic && (csrfToken == "" || p2ot == "")) {
+            if (!isPublic && (csrfToken == "" || p20t == "")) {
                 let message = `${botDetails.BotName}'s Token Missing`
                 sendErrorNotificationToAdmins(this.mailNotificationService, message)
 
@@ -66,7 +66,7 @@ export class WorkerService {
 
             let worker = new ScrapWorker(this.strategyService, botDetails, this.mailNotificationService, this.BotModel)
             this.workerCacheService.addWorker(worker);
-            worker.startWorker();
+            await worker.startWorker();
 
             let message = `${botDetails.BotName} Bot Started`
             sendInfoNotificationToAdmins(this.mailNotificationService, message)

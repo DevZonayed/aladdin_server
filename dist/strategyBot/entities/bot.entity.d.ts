@@ -28,7 +28,7 @@ export declare class Bot extends Document {
     description: string;
     strategySlug: string;
     strategyId: string;
-    p2ot: string;
+    p20t: string;
     csrfToken: string;
     isPublic: boolean;
     runningOrders: number;

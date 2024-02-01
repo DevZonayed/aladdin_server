@@ -34,10 +34,10 @@ export class CreateBotDto {
 
   @ApiProperty({
     type: String,
-    description: 'P2ot token',
+    description: 'P20t token',
     example: "545543434",
   })
-  readonly p2ot: string;
+  readonly p20t: string;
 
   @ApiProperty({
     type: String,

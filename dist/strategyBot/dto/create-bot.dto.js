@@ -50,11 +50,11 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,
-        description: 'P2ot token',
+        description: 'P20t token',
         example: "545543434",
     }),
     __metadata("design:type", String)
-], CreateBotDto.prototype, "p2ot", void 0);
+], CreateBotDto.prototype, "p20t", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,

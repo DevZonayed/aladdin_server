@@ -32,7 +32,7 @@ export declare class ScrapWorker {
     private updateTime;
     private errorMessage;
     private scrapId;
-    private p2ot;
+    private p20t;
     private csrfToken;
     private strName;
     private updateTimerId;
@@ -46,7 +46,7 @@ export declare class ScrapWorker {
     constructor(strategyService: StrategyService, botDto: any, mailNotificationService: NotificationService, BotModel: Model<Bot>);
     getWorkerStatus(): {
         scrapId: string;
-        p2ot: string;
+        p20t: string;
         csrfToken: string;
         isWorking: boolean;
         lastUpdate: string;
@@ -57,9 +57,9 @@ export declare class ScrapWorker {
     startWorker(): Promise<boolean>;
     stopWorker(): Promise<boolean>;
     organizeAndWatchData(row: any): void;
-    processCopyTradeRequest({ scrapId, p2ot, csrfToken }: {
+    processCopyTradeRequest({ scrapId, p20t, csrfToken }: {
         scrapId: any;
-        p2ot: any;
+        p20t: any;
         csrfToken: any;
     }): Promise<unknown>;
     checkTokenValidity(): void;

@@ -11,8 +11,8 @@ class ScrapWorker {
         this.configData = {
             scrapInterval: 3000
         };
-        let { _id: id, BotName, strategyId, p2ot, csrfToken } = botDto;
-        Object.assign(this, { id: id.toString(), strName: BotName, scrapId: strategyId, p2ot, csrfToken, strategyService, botDto, mailNotificationService, BotModel });
+        let { _id: id, BotName, strategyId, p20t, csrfToken } = botDto;
+        Object.assign(this, { id: id.toString(), strName: BotName, scrapId: strategyId, p20t, csrfToken, strategyService, botDto, mailNotificationService, BotModel });
         this.isWorking = false;
         this.updateTime = Date.now();
         this.dataWatcher = new watcherService_1.DataWatcher();
@@ -22,7 +22,7 @@ class ScrapWorker {
         let openOrders = this.dataWatcher.runningOrders();
         return {
             scrapId: this.scrapId,
-            p2ot: this.p2ot,
+            p20t: this.p20t,
             csrfToken: this.csrfToken,
             isWorking: this.isWorking,
             lastUpdate: new Date(this.updateTime).toLocaleString(),
@@ -50,8 +50,12 @@ class ScrapWorker {
     }
     async startWorker() {
         try {
-            !this.botDto.isPublic && await isValidToken(this.p2ot, this.csrfToken);
-            !this.botDto.isPublic && this.checkTokenValidity();
+            if (!this.botDto.isPublic) {
+                let result = await isValidToken(this.p20t, this.csrfToken);
+                if (!result?.success)
+                    throw new Error("Something went wrong while checking Token");
+                this.checkTokenValidity();
+            }
             await this.updateBotDb(this.botDto._id, { isRunning: true });
             this.isWorking = true;
             this.monitorMissedUpdates();
@@ -87,7 +91,7 @@ class ScrapWorker {
         let openPositions = data.filter(res => +res.positionAmount !== 0);
         this.dataWatcher.updateData(openPositions);
     }
-    processCopyTradeRequest({ scrapId, p2ot, csrfToken }) {
+    processCopyTradeRequest({ scrapId, p20t, csrfToken }) {
         return new Promise((resolve, reject) => {
             const CancelToken = axios.CancelToken;
             let cancelPreviousRequest;
@@ -98,7 +102,7 @@ class ScrapWorker {
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Clienttype': 'web',
                 'Content-Type': 'application/json',
-                'Cookie': `p2ot=${p2ot};`,
+                'Cookie': `p20t=${p20t};`,
                 'Csrftoken': `${csrfToken}`,
                 'Referer': `https://www.binance.com/en/copy-trading/lead-details/${scrapId}`,
                 'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
@@ -129,7 +133,7 @@ class ScrapWorker {
     }
     checkTokenValidity() {
         this.tokenValidateTimerId = setInterval(() => {
-            isValidToken(this.p2ot, this.csrfToken).then(res => res).catch(err => {
+            isValidToken(this.p20t, this.csrfToken, this.botDto.BotName).then(res => res).catch(err => {
                 let isExpaired = err?.response?.data;
                 if (isExpaired) {
                     let message = "Token Expaired !❌❌\nPlease Update Token Immediately!";
@@ -156,7 +160,7 @@ class ScrapWorker {
         this.dataWatcher.on("unUsualActivity", async (order) => {
             this.stopWorker();
             this.notifyTelegram("Unusual Activity Detacted!\n token checking!");
-            await isValidToken(this.p2ot, this.csrfToken).then(res => {
+            await isValidToken(this.p20t, this.csrfToken, this.botDto.BotName).then(res => {
                 this.startWorker();
             }).catch(err => {
                 let isExpaired = err?.response?.data;
@@ -175,7 +179,7 @@ class ScrapWorker {
         console.log(message);
     }
     scrapAndUpdate() {
-        this.processCopyTradeRequest({ scrapId: this.scrapId, p2ot: this.p2ot, csrfToken: this.csrfToken })
+        this.processCopyTradeRequest({ scrapId: this.scrapId, p20t: this.p20t, csrfToken: this.csrfToken })
             .then(res => {
             this.updateTime = Date.now();
             this.errorMessage = null;
@@ -307,14 +311,10 @@ class ScrapWorker {
     }
 }
 exports.ScrapWorker = ScrapWorker;
-function isValidToken(p2ot, csrfToken, channelId = null) {
+async function isValidToken(p20t, csrfToken, channelId = null) {
     const requestData = (attempt = 1) => {
         return new Promise((resolve, reject) => {
-            let data = JSON.stringify({
-                "strategyName": "SiderealWP",
-                "p2ot": p2ot,
-                "csrfToken": csrfToken
-            });
+            let data = JSON.stringify({});
             let config = {
                 method: 'post',
                 maxBodyLength: Infinity,
@@ -323,8 +323,8 @@ function isValidToken(p2ot, csrfToken, channelId = null) {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
                     'Referer': 'https://www.binance.com/en/my/dashboard',
+                    'Cookie': `p20t=${p20t}`,
                     'Csrftoken': csrfToken,
-                    'Cookie': `p2ot=${p2ot}`,
                     'Content-Type': 'application/json',
                     'Clienttype': 'web',
                     'Accept-Language': 'en-US,en;q=0.9'
