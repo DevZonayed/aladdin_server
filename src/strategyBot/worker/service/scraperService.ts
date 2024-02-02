@@ -249,8 +249,13 @@ export class ScrapWorker {
             return order;
         }
         const orderAmount = parseFloat(order.positionAmount);
-        order["positionSide"] = orderAmount > 0 ? OrderSideEnum.LONG : OrderSideEnum.SHORT;
-        order["positionAmount"] = Math.abs(orderAmount);
+
+        let updatedOrder = {
+            ...order,
+            positionSide: orderAmount > 0 ? OrderSideEnum.LONG : OrderSideEnum.SHORT,
+            positionAmount: Math.abs(orderAmount)
+        }
+        return updatedOrder;
     }
 
     // Events

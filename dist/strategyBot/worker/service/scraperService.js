@@ -196,8 +196,12 @@ class ScrapWorker {
             return order;
         }
         const orderAmount = parseFloat(order.positionAmount);
-        order["positionSide"] = orderAmount > 0 ? OrderSide_enum_1.OrderSideEnum.LONG : OrderSide_enum_1.OrderSideEnum.SHORT;
-        order["positionAmount"] = Math.abs(orderAmount);
+        let updatedOrder = {
+            ...order,
+            positionSide: orderAmount > 0 ? OrderSide_enum_1.OrderSideEnum.LONG : OrderSide_enum_1.OrderSideEnum.SHORT,
+            positionAmount: Math.abs(orderAmount)
+        };
+        return updatedOrder;
     }
     async handleCreateOrder(order) {
         try {
