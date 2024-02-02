@@ -1,6 +1,7 @@
 import { Model } from "mongoose";
 import { SignalTypeEnum } from "src/binance/enum/BinanceEnum";
 import { NotificationService } from "src/notification/mail/service/notification.service";
+import { OrderSideEnum } from "src/order/enums/OrderSide.enum";
 import { OrderWebHookDto } from "src/strategy/dto/order_webhook-dto";
 import { StrategyService } from "src/strategy/service/strategy.service";
 import { Bot } from "src/strategyBot/entities/bot.entity";
@@ -242,10 +243,21 @@ export class ScrapWorker {
     }
 
 
+    // Order data customize for hadge mode order
+    handleHadgeOrderDto(order: any) {
+        if (order.positionSide.toUpperCase() != OrderSideEnum.BOTH) {
+            return order;
+        }
+        const orderAmount = parseFloat(order.positionAmount);
+        order["positionSide"] = orderAmount > 0 ? OrderSideEnum.LONG : OrderSideEnum.SHORT;
+        order["positionAmount"] = Math.abs(orderAmount);
+    }
+
     // Events
     // Order Creations
     async handleCreateOrder(order: any) {
         try {
+            order = this.handleHadgeOrderDto(order)
             let strategyService: StrategyService = this.strategyService;
             let botName = this.botDto.BotName
             let botSlag = this.botDto.strategySlug
@@ -260,7 +272,6 @@ export class ScrapWorker {
                 symbol: order.symbol,
                 type: "LIMIT"
             }
-            console.log("New Order In Event recived!")
             let result: any = await strategyService.handleWebHook(botSlag, orderPayload)
             let message = `New Order Created for ${order.symbol} with ${order.positionAmount} quantity`
             if (typeof result.payload == "string") {
@@ -278,6 +289,8 @@ export class ScrapWorker {
     // Order Update
     async handleUpdateOrder(prevOrder, newOrder) {
         try {
+            prevOrder = this.handleHadgeOrderDto(prevOrder)
+            newOrder = this.handleHadgeOrderDto(newOrder)
 
             let differences = [];
             let includedKeys = ["positionAmount"]
@@ -335,6 +348,7 @@ export class ScrapWorker {
     // Order Close
     async handleCloseOrder(order: any) {
         try {
+            order = this.handleHadgeOrderDto(order);
             let strategyService: StrategyService = this.strategyService
             let botName = this.botDto.BotName
             let botSlag = this.botDto.strategySlug
@@ -361,8 +375,6 @@ export class ScrapWorker {
             sendErrorNotificationToAdmins(this.mailNotificationService, message)
         }
     }
-
-
 
     // Database Updateation
     async updateBotDb(id: string, payload: any) {

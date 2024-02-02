@@ -5,5 +5,6 @@ var OrderSideEnum;
 (function (OrderSideEnum) {
     OrderSideEnum["LONG"] = "LONG";
     OrderSideEnum["SHORT"] = "SHORT";
+    OrderSideEnum["BOTH"] = "BOTH";
 })(OrderSideEnum || (exports.OrderSideEnum = OrderSideEnum = {}));
 //# sourceMappingURL=OrderSide.enum.js.map

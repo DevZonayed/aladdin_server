@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScrapWorker = void 0;
 const BinanceEnum_1 = require("../../../binance/enum/BinanceEnum");
+const OrderSide_enum_1 = require("../../../order/enums/OrderSide.enum");
 const dummySignal_1 = require("../data/dummySignal");
 const botMail_utils_1 = require("../utils/botMail.utils");
 const watcherService_1 = require("./watcherService");
@@ -190,8 +191,17 @@ class ScrapWorker {
             console.error(err);
         });
     }
+    handleHadgeOrderDto(order) {
+        if (order.positionSide.toUpperCase() != OrderSide_enum_1.OrderSideEnum.BOTH) {
+            return order;
+        }
+        const orderAmount = parseFloat(order.positionAmount);
+        order["positionSide"] = orderAmount > 0 ? OrderSide_enum_1.OrderSideEnum.LONG : OrderSide_enum_1.OrderSideEnum.SHORT;
+        order["positionAmount"] = Math.abs(orderAmount);
+    }
     async handleCreateOrder(order) {
         try {
+            order = this.handleHadgeOrderDto(order);
             let strategyService = this.strategyService;
             let botName = this.botDto.BotName;
             let botSlag = this.botDto.strategySlug;
@@ -206,7 +216,6 @@ class ScrapWorker {
                 symbol: order.symbol,
                 type: "LIMIT"
             };
-            console.log("New Order In Event recived!");
             let result = await strategyService.handleWebHook(botSlag, orderPayload);
             let message = `New Order Created for ${order.symbol} with ${order.positionAmount} quantity`;
             if (typeof result.payload == "string") {
@@ -222,6 +231,8 @@ class ScrapWorker {
     }
     async handleUpdateOrder(prevOrder, newOrder) {
         try {
+            prevOrder = this.handleHadgeOrderDto(prevOrder);
+            newOrder = this.handleHadgeOrderDto(newOrder);
             let differences = [];
             let includedKeys = ["positionAmount"];
             Object.keys(prevOrder).forEach(key => {
@@ -273,6 +284,7 @@ class ScrapWorker {
     }
     async handleCloseOrder(order) {
         try {
+            order = this.handleHadgeOrderDto(order);
             let strategyService = this.strategyService;
             let botName = this.botDto.BotName;
             let botSlag = this.botDto.strategySlug;

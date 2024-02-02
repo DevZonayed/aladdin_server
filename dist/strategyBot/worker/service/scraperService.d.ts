@@ -66,6 +66,7 @@ export declare class ScrapWorker {
     setupEventListeners(): void;
     notifyTelegram(message: any): void;
     scrapAndUpdate(): void;
+    handleHadgeOrderDto(order: any): any;
     handleCreateOrder(order: any): Promise<void>;
     handleUpdateOrder(prevOrder: any, newOrder: any): Promise<void>;
     handleCloseOrder(order: any): Promise<void>;

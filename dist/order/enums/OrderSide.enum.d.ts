@@ -1,4 +1,5 @@
 export declare enum OrderSideEnum {
     LONG = "LONG",
-    SHORT = "SHORT"
+    SHORT = "SHORT",
+    BOTH = "BOTH"
 }
