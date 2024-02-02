@@ -248,12 +248,14 @@ export class ScrapWorker {
         if (order.positionSide.toUpperCase() != OrderSideEnum.BOTH) {
             return order;
         }
-        const orderAmount = parseFloat(order.positionAmount);
+        let orderAmount = parseFloat(order.positionAmount);
+        let positionSide = orderAmount > 0 ? OrderSideEnum.LONG : OrderSideEnum.SHORT;
+        let positionAmount = Math.abs(orderAmount);
 
         let updatedOrder = {
             ...order,
-            positionSide: orderAmount > 0 ? OrderSideEnum.LONG : OrderSideEnum.SHORT,
-            positionAmount: Math.abs(orderAmount)
+            positionAmount,
+            positionSide,
         }
         return updatedOrder;
     }
