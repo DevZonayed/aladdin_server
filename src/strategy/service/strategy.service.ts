@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SignalTypeEnum } from 'src/binance/enum/BinanceEnum';
 import { BinanceService } from 'src/binance/service/binance.service';
-import { DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, SOMETHING_WENT_WRONG, STRATEGY_CREATED_FAILED, STRATEGY_CREATED_SUCCESSFULLY, STRATEGY_INCOMING_ORDER_DISABLED, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
+import { ASSET_NOT_ALLOWED, DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, SOMETHING_WENT_WRONG, STRATEGY_CREATED_FAILED, STRATEGY_CREATED_SUCCESSFULLY, STRATEGY_INCOMING_ORDER_DISABLED, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
 import { SortBy } from 'src/common/enum/enum-sort-by';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/service/user.service';
@@ -273,6 +273,32 @@ export class StrategyService {
           [],
         );
       }
+
+      // Handle Allow and banned assets protection
+      const allowAssets = strategy?.allowAssets || null
+      const bannedAssets = strategy?.bannedAssets || null
+      if (allowAssets && allowAssets.length > 0) {
+        let symbol = order?.symbol?.toUpperCase() || "";
+        if (!allowAssets.includes(symbol)) {
+          return createApiResponse(
+            HttpStatus.CONTINUE,
+            FAIELD_RESPONSE,
+            ASSET_NOT_ALLOWED,
+            [],
+          );
+        }
+      } else if (bannedAssets && bannedAssets.length > 0) {
+        let symbol = order?.symbol?.toUpperCase() || "";
+        if (bannedAssets.includes(symbol)) {
+          return createApiResponse(
+            HttpStatus.CONTINUE,
+            FAIELD_RESPONSE,
+            ASSET_NOT_ALLOWED,
+            [],
+          );
+        }
+      }
+
 
       return await this.binanceService.createStrategyOrders(strategy, credentials, order)
 

@@ -9,6 +9,7 @@ export declare class CreateStrategyDto {
     readonly partialOrderType: string;
     readonly minimumCapitalToSubscribe: number;
     readonly tradeMaxAmountPercentage: number;
+    readonly respectNotion: boolean;
     readonly tradeMaxLeverage: number;
     readonly reEntry: boolean;
     readonly stopLoss: boolean;

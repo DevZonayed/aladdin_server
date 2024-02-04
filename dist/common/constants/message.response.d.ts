@@ -15,6 +15,7 @@ export declare const STRATEGY_CREATED_SUCCESSFULLY = "Strategy Created Successfu
 export declare const STRATEGY_CREATED_FAILED = "Strategy Created Failed";
 export declare const STRATEGY_NOT_FOUND = "Strategy Not Found";
 export declare const STRATEGY_INCOMING_ORDER_DISABLED = "Strategy Incoming Order Disabled";
+export declare const ASSET_NOT_ALLOWED = "Asset Not Allowed";
 export declare const DATA_FOUND = "Data Found";
 export declare const NO_DATA_FOUND = "No Data Found";
 export declare const SOMETHING_WENT_WRONG = "Something went wrong";

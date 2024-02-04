@@ -258,8 +258,8 @@ class ScrapWorker {
             if (diffrence.key != "positionAmount") {
                 return;
             }
-            let orderQty = Number(diffrence.currentValue) - Number(diffrence.previousValue);
-            let OrderType = orderQty > 0 ? BinanceEnum_1.SignalTypeEnum.RE_ENTRY : BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE;
+            let orderQty = Number(newOrder.positionAmount) - Number(prevOrder.positionAmount);
+            let OrderType = +newOrder.positionAmount > +prevOrder.positionAmount ? BinanceEnum_1.SignalTypeEnum.RE_ENTRY : BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE;
             let strategyService = this.strategyService;
             let botName = this.botDto.BotName;
             let botSlag = this.botDto.strategySlug;
@@ -276,7 +276,7 @@ class ScrapWorker {
                 type: "MARKET"
             };
             let result = await strategyService.handleWebHook(botSlag, orderPayload);
-            let message = `Order Updated for ${order.symbol} with ${order.positionAmount} quantity`;
+            let message = `Order Updated with ${OrderType} for ${order.symbol} with ${Math.abs(Number(orderQty))} quantity`;
             if (typeof result.payload == "string") {
                 message += `\n but something went wrong, it returns: ${result.payload}`;
             }

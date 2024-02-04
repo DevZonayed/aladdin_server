@@ -4,6 +4,7 @@ interface SymbolInfo {
     symbol: string;
     filters: Array<{
         filterType: string;
+        minNotional?: string;
         stepSize?: string;
         tickSize?: string;
     }>;
@@ -19,7 +20,8 @@ export declare class BinanceExchaneService {
     constructor(cacheService: Cache);
     getExchangeInfo(): Promise<ExchangeInfo>;
     getPrecisionFromFilter(filters: any, filterType: any): number;
-    formatQuantity(symbol: string, quantity: number): Promise<number>;
+    formatQuantity(symbol: string, quantity: number, respectNotion?: boolean): Promise<number>;
+    getCurrentPrice(symbol: string): Promise<number>;
     formatPrice(symbol: string, price: any): Promise<number>;
 }
 export {};

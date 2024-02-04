@@ -15,6 +15,7 @@ export const STRATEGY_CREATED_SUCCESSFULLY = 'Strategy Created Successfully';
 export const STRATEGY_CREATED_FAILED = 'Strategy Created Failed';
 export const STRATEGY_NOT_FOUND = 'Strategy Not Found';
 export const STRATEGY_INCOMING_ORDER_DISABLED = 'Strategy Incoming Order Disabled';
+export const ASSET_NOT_ALLOWED = 'Asset Not Allowed';
 export const DATA_FOUND = 'Data Found';
 export const NO_DATA_FOUND = 'No Data Found';
 export const SOMETHING_WENT_WRONG = 'Something went wrong';

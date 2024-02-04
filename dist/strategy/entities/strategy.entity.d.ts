@@ -34,6 +34,7 @@ export declare class Strategy extends Document {
     partialOrderType: string;
     minimumCapitalToSubscribe: number;
     tradeMaxAmountPercentage: number;
+    respectNotion: boolean;
     tradeMaxLeverage: number;
     reEntry: boolean;
     stopLoss: boolean;

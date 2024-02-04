@@ -261,7 +261,7 @@ export class BinanceService {
                 let partialOrderType = strategy.partialOrderType || "MARKET";
 
 
-                if (!Object.values(SignalTypeEnum).includes(signalType as SignalTypeEnum)) {
+                if (!Object.values(SignalTypeEnum).includes(signalType as any)) {
                     throw new Error("Invalid Signal Type, Signal Type is " + signalType);
                 }
 
@@ -280,6 +280,8 @@ export class BinanceService {
 
                 if (prevOrderRes.success) {
                     prevOrderRes = prevOrderRes.result;
+                } else {
+                    prevOrderRes = null;
                 }
 
                 let instance = isTestMode ? binanceTest : binance;
@@ -293,13 +295,18 @@ export class BinanceService {
 
                 let { tradeAmount: accauntTradeAmount, ratio } = calculateMyTradeAmount(rootTradeAmount, rootTradeCapital, myCapital, maxTradeAmount, orderRatio);
 
+                // Manage Quantity and Price and leverage
                 quantity = calculateQuantity(accauntTradeAmount, price)
 
+                // Close quantity handle
+                if (signalType == SignalTypeEnum.CLOSE) {
+                    signalType = SignalTypeEnum.PARTIAL_CLOSE;
+                    quantity = (Number(prevOrderRes?.data?.orderQty) - Number(prevOrderRes?.data?.closedQty)) + 0.01;
+                }
 
-                quantity = await this.binanceExchaneService.formatQuantity(symbol, quantity)
-
+                let respectNotion = strategy?.respectNotion || false;
+                quantity = await this.binanceExchaneService.formatQuantity(symbol, quantity, respectNotion)
                 price = await this.binanceExchaneService.formatPrice(symbol, price)
-                // Set Leverage and Margin Type
                 await this.configureLeverageAndMarginSettings(instance, symbol, leverage, isolated, userId);
 
                 let order: any = ""

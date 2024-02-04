@@ -33,14 +33,35 @@ class BinanceExchaneService {
         const precision = stepSize.indexOf('1') - 1;
         return Math.max(0, precision);
     }
-    async formatQuantity(symbol, quantity) {
+    async formatQuantity(symbol, quantity, respectNotion = false) {
         const exchangeInfo = await this.getExchangeInfo();
         const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === symbol);
         if (!symbolInfo) {
             throw new Error("Symbol not found in exchange info");
         }
+        const price = await this.getCurrentPrice(symbol);
+        const minNotionalFilter = symbolInfo.filters.find(f => f.filterType === 'MIN_NOTIONAL');
+        if (!minNotionalFilter || !minNotionalFilter.minNotional) {
+            throw new Error("MIN_NOTIONAL filter not found for symbol");
+        }
+        const minNotionalValue = parseFloat(minNotionalFilter.minNotional);
+        let notionalValue = quantity * price;
+        if (notionalValue < minNotionalValue && respectNotion) {
+            quantity = minNotionalValue / price;
+            notionalValue = quantity * price;
+        }
         const precision = this.getPrecisionFromFilter(symbolInfo.filters, 'LOT_SIZE');
         return parseFloat(quantity.toFixed(precision));
+    }
+    async getCurrentPrice(symbol) {
+        try {
+            const ticker = await this.binanceInstance.prices(symbol);
+            return parseFloat(ticker[symbol]);
+        }
+        catch (err) {
+            console.error(err);
+            throw new Error("Failed to fetch current price for symbol");
+        }
     }
     async formatPrice(symbol, price) {
         price = parseFloat(price);

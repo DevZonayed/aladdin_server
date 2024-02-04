@@ -160,6 +160,20 @@ let StrategyService = class StrategyService {
             if (credentials.length === 0) {
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND, []);
             }
+            const allowAssets = strategy?.allowAssets || null;
+            const bannedAssets = strategy?.bannedAssets || null;
+            if (allowAssets && allowAssets.length > 0) {
+                let symbol = order?.symbol?.toUpperCase() || "";
+                if (!allowAssets.includes(symbol)) {
+                    return (0, constants_1.createApiResponse)(common_1.HttpStatus.CONTINUE, constants_1.FAIELD_RESPONSE, constants_1.ASSET_NOT_ALLOWED, []);
+                }
+            }
+            else if (bannedAssets && bannedAssets.length > 0) {
+                let symbol = order?.symbol?.toUpperCase() || "";
+                if (bannedAssets.includes(symbol)) {
+                    return (0, constants_1.createApiResponse)(common_1.HttpStatus.CONTINUE, constants_1.FAIELD_RESPONSE, constants_1.ASSET_NOT_ALLOWED, []);
+                }
+            }
             return await this.binanceService.createStrategyOrders(strategy, credentials, order);
         }
         catch (err) {

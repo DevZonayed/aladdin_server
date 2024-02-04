@@ -320,8 +320,8 @@ export class ScrapWorker {
                 return
             }
 
-            let orderQty = Number(diffrence.currentValue) - Number(diffrence.previousValue);
-            let OrderType = orderQty > 0 ? SignalTypeEnum.RE_ENTRY : SignalTypeEnum.PARTIAL_CLOSE
+            let orderQty = Number(newOrder.positionAmount) - Number(prevOrder.positionAmount);
+            let OrderType = +newOrder.positionAmount > +prevOrder.positionAmount ? SignalTypeEnum.RE_ENTRY : SignalTypeEnum.PARTIAL_CLOSE
             // Order Procidure
             let strategyService: StrategyService = this.strategyService;
             let botName = this.botDto.BotName
@@ -340,7 +340,7 @@ export class ScrapWorker {
             }
             let result: any = await strategyService.handleWebHook(botSlag, orderPayload)
 
-            let message = `Order Updated for ${order.symbol} with ${order.positionAmount} quantity`;
+            let message = `Order Updated with ${OrderType} for ${order.symbol} with ${Math.abs(Number(orderQty))} quantity`;
             if (typeof result.payload == "string") {
                 message += `\n but something went wrong, it returns: ${result.payload}`
             }

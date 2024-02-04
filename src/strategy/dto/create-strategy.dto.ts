@@ -85,6 +85,14 @@ export class CreateStrategyDto {
   readonly tradeMaxAmountPercentage: number;
 
   @ApiProperty({
+    type: Boolean,
+    description: 'Maximum amount for per trade',
+    example: false,
+    required: true
+  })
+  readonly respectNotion: boolean;
+
+  @ApiProperty({
     type: Number,
     description: 'Maximum leverage for per trade',
     example: 10,

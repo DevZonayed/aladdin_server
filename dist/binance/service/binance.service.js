@@ -244,6 +244,9 @@ let BinanceService = class BinanceService {
                 if (prevOrderRes.success) {
                     prevOrderRes = prevOrderRes.result;
                 }
+                else {
+                    prevOrderRes = null;
+                }
                 let instance = isTestMode ? binanceTest : binance;
                 let rootTradeAmount = Number(price) * Number(quantity);
                 let rootTradeCapital = Number(strategy.capital);
@@ -252,7 +255,12 @@ let BinanceService = class BinanceService {
                 let orderRatio = prevOrderRes?.data?.initialOrderRatio ? Number(prevOrderRes.data.initialOrderRatio) : null;
                 let { tradeAmount: accauntTradeAmount, ratio } = (0, trade_calculations_1.calculateMyTradeAmount)(rootTradeAmount, rootTradeCapital, myCapital, maxTradeAmount, orderRatio);
                 quantity = (0, trade_calculations_1.calculateQuantity)(accauntTradeAmount, price);
-                quantity = await this.binanceExchaneService.formatQuantity(symbol, quantity);
+                if (signalType == BinanceEnum_1.SignalTypeEnum.CLOSE) {
+                    signalType = BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE;
+                    quantity = (Number(prevOrderRes?.data?.orderQty) - Number(prevOrderRes?.data?.closedQty)) + 0.01;
+                }
+                let respectNotion = strategy?.respectNotion || false;
+                quantity = await this.binanceExchaneService.formatQuantity(symbol, quantity, respectNotion);
                 price = await this.binanceExchaneService.formatPrice(symbol, price);
                 await this.configureLeverageAndMarginSettings(instance, symbol, leverage, isolated, userId);
                 let order = "";

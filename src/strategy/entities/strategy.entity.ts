@@ -33,6 +33,9 @@ export class Strategy extends Document {
   @Prop({ type: Number, required: true })
   tradeMaxAmountPercentage: number
 
+  @Prop({ type: Boolean, default: false })
+  respectNotion: boolean
+
   @Prop({ type: Number, required: true })
   tradeMaxLeverage: number
 

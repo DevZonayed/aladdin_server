@@ -7,6 +7,7 @@ interface SymbolInfo {
     symbol: string;
     filters: Array<{
         filterType: string;
+        minNotional?: string;
         stepSize?: string;
         tickSize?: string;
     }>;
@@ -53,14 +54,42 @@ export class BinanceExchaneService {
         return Math.max(0, precision);
     }
 
-    async formatQuantity(symbol: string, quantity: number): Promise<number> {
+    async formatQuantity(symbol: string, quantity: number, respectNotion: boolean = false): Promise<number> {
         const exchangeInfo = await this.getExchangeInfo();
         const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === symbol);
         if (!symbolInfo) {
             throw new Error("Symbol not found in exchange info");
         }
+
+        // Fetch current price for the symbol
+        const price = await this.getCurrentPrice(symbol);
+
+        // Find MIN_NOTIONAL filter
+        const minNotionalFilter = symbolInfo.filters.find(f => f.filterType === 'MIN_NOTIONAL');
+        if (!minNotionalFilter || !minNotionalFilter.minNotional) {
+            throw new Error("MIN_NOTIONAL filter not found for symbol");
+        }
+
+        const minNotionalValue = parseFloat(minNotionalFilter.minNotional);
+        let notionalValue = quantity * price;
+
+        if (notionalValue < minNotionalValue && respectNotion) {
+            quantity = minNotionalValue / price;
+            notionalValue = quantity * price;
+        }
+
         const precision = this.getPrecisionFromFilter(symbolInfo.filters, 'LOT_SIZE');
         return parseFloat(quantity.toFixed(precision));
+    }
+
+    async getCurrentPrice(symbol: string): Promise<number> {
+        try {
+            const ticker = await this.binanceInstance.prices(symbol);
+            return parseFloat(ticker[symbol]);
+        } catch (err) {
+            console.error(err);
+            throw new Error("Failed to fetch current price for symbol");
+        }
     }
 
     async formatPrice(symbol: string, price: any): Promise<number> {

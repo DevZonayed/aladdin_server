@@ -104,6 +104,15 @@ __decorate([
 ], CreateStrategyDto.prototype, "tradeMaxAmountPercentage", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
+        type: Boolean,
+        description: 'Maximum amount for per trade',
+        example: false,
+        required: true
+    }),
+    __metadata("design:type", Boolean)
+], CreateStrategyDto.prototype, "respectNotion", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
         type: Number,
         description: 'Maximum leverage for per trade',
         example: 10,
