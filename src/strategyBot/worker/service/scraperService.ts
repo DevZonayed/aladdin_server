@@ -366,7 +366,7 @@ export class ScrapWorker {
                 price: Number(order.entryPrice),
                 quantity: Math.abs(Number(order.positionAmount)),
                 side: order.positionSide.toUpperCase(),
-                signalType: SignalTypeEnum.PARTIAL_CLOSE,
+                signalType: SignalTypeEnum.CLOSE,
                 symbol: order.symbol,
                 type: "MARKET"
             }

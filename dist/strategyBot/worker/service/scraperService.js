@@ -301,7 +301,7 @@ class ScrapWorker {
                 price: Number(order.entryPrice),
                 quantity: Math.abs(Number(order.positionAmount)),
                 side: order.positionSide.toUpperCase(),
-                signalType: BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE,
+                signalType: BinanceEnum_1.SignalTypeEnum.CLOSE,
                 symbol: order.symbol,
                 type: "MARKET"
             };
