@@ -4,8 +4,8 @@ interface SymbolInfo {
     symbol: string;
     filters: Array<{
         filterType: string;
-        maxPrice?: string;
-        minPrice?: string;
+        maxNotional?: string;
+        minNotional?: string;
         stepSize?: string;
         tickSize?: string;
     }>;
