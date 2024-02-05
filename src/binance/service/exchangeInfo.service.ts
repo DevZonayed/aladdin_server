@@ -7,8 +7,8 @@ interface SymbolInfo {
     symbol: string;
     filters: Array<{
         filterType: string;
-        minNotional?: string;
-        maxNotional?: string;
+        maxPrice?: string;
+        minPrice?: string;
         stepSize?: string;
         tickSize?: string;
     }>;
@@ -66,13 +66,13 @@ export class BinanceExchaneService {
         const price = await this.getCurrentPrice(symbol);
 
         // Find MIN_NOTIONAL filter
-        const minNotionalFilter = symbolInfo.filters.find(f => f.filterType === 'NOTIONAL');
-        if (!minNotionalFilter || !minNotionalFilter.minNotional || !minNotionalFilter.maxNotional) {
+        const notionalFilter = symbolInfo.filters.find(f => f.filterType === 'NOTIONAL');
+        if (!notionalFilter || !notionalFilter.minPrice || !notionalFilter.maxPrice) {
             throw new Error("NOTIONAL filter not found for symbol");
         }
 
-        const minNotionalValue = parseFloat(minNotionalFilter.minNotional);
-        const maxNotionalValue = parseFloat(minNotionalFilter.maxNotional);
+        const minNotionalValue = parseFloat(notionalFilter.minPrice);
+        const maxNotionalValue = parseFloat(notionalFilter.maxPrice);
         let notionalValue = quantity * price;
 
         if (notionalValue < minNotionalValue && respectNotion) {

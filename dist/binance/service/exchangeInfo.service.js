@@ -40,12 +40,12 @@ class BinanceExchaneService {
             throw new Error("Symbol not found in exchange info");
         }
         const price = await this.getCurrentPrice(symbol);
-        const minNotionalFilter = symbolInfo.filters.find(f => f.filterType === 'NOTIONAL');
-        if (!minNotionalFilter || !minNotionalFilter.minNotional || !minNotionalFilter.maxNotional) {
+        const notionalFilter = symbolInfo.filters.find(f => f.filterType === 'NOTIONAL');
+        if (!notionalFilter || !notionalFilter.minPrice || !notionalFilter.maxPrice) {
             throw new Error("NOTIONAL filter not found for symbol");
         }
-        const minNotionalValue = parseFloat(minNotionalFilter.minNotional);
-        const maxNotionalValue = parseFloat(minNotionalFilter.maxNotional);
+        const minNotionalValue = parseFloat(notionalFilter.minPrice);
+        const maxNotionalValue = parseFloat(notionalFilter.maxPrice);
         let notionalValue = quantity * price;
         if (notionalValue < minNotionalValue && respectNotion) {
             quantity = minNotionalValue / price;
