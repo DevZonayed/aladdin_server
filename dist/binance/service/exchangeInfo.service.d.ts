@@ -5,6 +5,7 @@ interface SymbolInfo {
     filters: Array<{
         filterType: string;
         minNotional?: string;
+        maxNotional?: string;
         stepSize?: string;
         tickSize?: string;
     }>;
