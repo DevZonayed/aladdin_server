@@ -200,6 +200,7 @@ class ScrapWorker {
         let positionAmount = Math.abs(orderAmount);
         let updatedOrder = {
             ...order,
+            id: `${order.id}_${positionSide}`,
             positionAmount,
             positionSide,
         };

@@ -173,14 +173,14 @@ let BinanceService = class BinanceService {
     }
     computeOrderUpdateDetails(orderData, orderDto, order) {
         let updatePayload = {};
-        if (orderDto.signalType === BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE) {
+        if (orderDto.signalType === BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE || orderDto.signalType === BinanceEnum_1.SignalTypeEnum.CLOSE) {
             let closedQuantity = orderData.closedQty + this.computeClosedOrderQuantity(order, orderDto);
             let totalOrderQuantity = orderData.orderQty;
             if (totalOrderQuantity <= closedQuantity) {
                 updatePayload = {
                     closedQty: closedQuantity,
                     status: status_enum_1.StatusEnum.CLOSED,
-                    closeReason: `${BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE} Close Quantity is more than order quantity`
+                    closeReason: `${orderDto.signalType} Signals Quantity Sell Achived!`
                 };
             }
             else {
@@ -251,13 +251,17 @@ let BinanceService = class BinanceService {
                 let rootTradeAmount = Number(price) * Number(quantity);
                 let rootTradeCapital = Number(strategy.capital);
                 let myCapital = Number(binanceBalanceRes?.balance);
-                let maxTradeAmount = (0, trade_calculations_1.calculatePercentage)(myCapital, Number(strategy.tradeMaxAmountPercentage));
+                let maxTradeAmount = (0, trade_calculations_1.calculateAmountFromPercentage)(myCapital, Number(strategy.tradeMaxAmountPercentage));
                 let orderRatio = prevOrderRes?.data?.initialOrderRatio ? Number(prevOrderRes.data.initialOrderRatio) : null;
                 let { tradeAmount: accauntTradeAmount, ratio } = (0, trade_calculations_1.calculateMyTradeAmount)(rootTradeAmount, rootTradeCapital, myCapital, maxTradeAmount, orderRatio);
                 quantity = (0, trade_calculations_1.calculateQuantity)(accauntTradeAmount, price);
                 if (signalType == BinanceEnum_1.SignalTypeEnum.CLOSE) {
                     signalType = BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE;
-                    quantity = (Number(prevOrderRes?.data?.orderQty) - Number(prevOrderRes?.data?.closedQty)) + 0.01;
+                    if (prevOrderRes?.data?.orderQty) {
+                        let orderQty = Number(prevOrderRes?.data?.orderQty);
+                        let closedQty = Number(prevOrderRes?.data?.closedQty) || 0;
+                        quantity = (orderQty - closedQty + 0.01);
+                    }
                 }
                 let respectNotion = strategy?.respectNotion || false;
                 quantity = await this.binanceExchaneService.formatQuantity(symbol, quantity, respectNotion);

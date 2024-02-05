@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculatePercentage = exports.calculateMyTradeAmount = exports.calculateQuantity = exports.calculateTradeDetailsForUser = exports.calculateParentTradePercentage = void 0;
+exports.calculateAmountFromPercentage = exports.calculateMyTradeAmount = exports.calculateQuantity = exports.calculateTradeDetailsForUser = exports.calculateParentTradePercentage = void 0;
 function calculateParentTradePercentage(capital, quantity, entryPrice) {
     capital = Number(capital);
     quantity = Number(quantity);
@@ -53,10 +53,13 @@ function calculateMyTradeAmount(traderTradeAmount, traderBalance, myBalance, myM
     }
 }
 exports.calculateMyTradeAmount = calculateMyTradeAmount;
-function calculatePercentage(amount, percentage) {
+function calculateAmountFromPercentage(amount, percentage) {
     amount = Number(amount);
-    percentage = Number(percentage);
+    percentage = Number(percentage) || 100;
+    if (!amount || !percentage) {
+        throw new Error("Invalid amount or percentage to calculate trade amount");
+    }
     return (amount * percentage) / 100;
 }
-exports.calculatePercentage = calculatePercentage;
+exports.calculateAmountFromPercentage = calculateAmountFromPercentage;
 //# sourceMappingURL=trade.calculations.js.map

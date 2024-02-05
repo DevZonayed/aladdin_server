@@ -57,8 +57,11 @@ export function calculateMyTradeAmount(traderTradeAmount, traderBalance, myBalan
 }
 
 
-export function calculatePercentage(amount: any, percentage: any): number {
+export function calculateAmountFromPercentage(amount: any, percentage: any): number {
     amount = Number(amount);
-    percentage = Number(percentage);
+    percentage = Number(percentage) || 100;
+    if (!amount || !percentage) {
+        throw new Error("Invalid amount or percentage to calculate trade amount");
+    }
     return (amount * percentage) / 100;
 }

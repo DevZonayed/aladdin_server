@@ -11,7 +11,7 @@ import { Strategy } from 'src/strategy/entities/strategy.entity';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/service/user.service';
 import { PositionSideEnum, PositionTypeEnum, SignalTypeEnum } from '../enum/BinanceEnum';
-import { calculateMyTradeAmount, calculatePercentage, calculateQuantity } from '../utils/trade.calculations';
+import { calculateAmountFromPercentage, calculateMyTradeAmount, calculateQuantity } from '../utils/trade.calculations';
 import { BinanceExchaneService } from './exchangeInfo.service';
 const Binance = require('node-binance-api');
 
@@ -198,7 +198,7 @@ export class BinanceService {
     private computeOrderUpdateDetails(orderData, orderDto, order) {
         let updatePayload = {};
 
-        if (orderDto.signalType === SignalTypeEnum.PARTIAL_CLOSE) {
+        if (orderDto.signalType === SignalTypeEnum.PARTIAL_CLOSE || orderDto.signalType === SignalTypeEnum.CLOSE) {
             let closedQuantity = orderData.closedQty + this.computeClosedOrderQuantity(order, orderDto);
             let totalOrderQuantity = orderData.orderQty;
 
@@ -206,7 +206,7 @@ export class BinanceService {
                 updatePayload = {
                     closedQty: closedQuantity,
                     status: StatusEnum.CLOSED,
-                    closeReason: `${SignalTypeEnum.PARTIAL_CLOSE} Close Quantity is more than order quantity`
+                    closeReason: `${orderDto.signalType} Signals Quantity Sell Achived!`
                 };
             } else {
                 updatePayload = {
@@ -289,10 +289,8 @@ export class BinanceService {
                 let rootTradeAmount = Number(price) * Number(quantity);
                 let rootTradeCapital = Number(strategy.capital);
                 let myCapital = Number(binanceBalanceRes?.balance);
-                let maxTradeAmount = calculatePercentage(myCapital, Number(strategy.tradeMaxAmountPercentage));
+                let maxTradeAmount = calculateAmountFromPercentage(myCapital, Number(strategy.tradeMaxAmountPercentage));
                 let orderRatio = prevOrderRes?.data?.initialOrderRatio ? Number(prevOrderRes.data.initialOrderRatio) : null
-
-
                 let { tradeAmount: accauntTradeAmount, ratio } = calculateMyTradeAmount(rootTradeAmount, rootTradeCapital, myCapital, maxTradeAmount, orderRatio);
 
                 // Manage Quantity and Price and leverage
@@ -301,13 +299,19 @@ export class BinanceService {
                 // Close quantity handle
                 if (signalType == SignalTypeEnum.CLOSE) {
                     signalType = SignalTypeEnum.PARTIAL_CLOSE;
-                    quantity = (Number(prevOrderRes?.data?.orderQty) - Number(prevOrderRes?.data?.closedQty)) + 0.01;
+                    if (prevOrderRes?.data?.orderQty) {
+                        let orderQty = Number(prevOrderRes?.data?.orderQty);
+                        let closedQty = Number(prevOrderRes?.data?.closedQty) || 0;
+                        quantity = (orderQty - closedQty + 0.01);
+                    }
                 }
 
                 let respectNotion = strategy?.respectNotion || false;
                 quantity = await this.binanceExchaneService.formatQuantity(symbol, quantity, respectNotion)
+
                 price = await this.binanceExchaneService.formatPrice(symbol, price)
                 await this.configureLeverageAndMarginSettings(instance, symbol, leverage, isolated, userId);
+
 
                 let order: any = ""
                 // Place Order

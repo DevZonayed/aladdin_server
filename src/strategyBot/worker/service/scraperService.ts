@@ -254,6 +254,7 @@ export class ScrapWorker {
 
         let updatedOrder = {
             ...order,
+            id: `${order.id}_${positionSide}`,
             positionAmount,
             positionSide,
         }
