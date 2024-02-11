@@ -239,8 +239,6 @@ export class BinanceService {
         }
     }
 
-
-
     // Create Order
     private async generateFutureOrders(strategy: Strategy, credentials: any, orderDto: OrderWebHookDto) {
         let { apiKey, apiSecret, isTestMode, _id: userId } = credentials;
@@ -249,7 +247,7 @@ export class BinanceService {
                 // Parameter Validation
                 let { symbol, side, type, quantity, price, leverage, signalType } = orderDto;
 
-                let isolated = strategy.isolated || false;
+                let isolated = strategy?.isolated || false;
 
 
                 if (!symbol || !side || !type || !quantity || !price || !signalType) {
