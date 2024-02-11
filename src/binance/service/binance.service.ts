@@ -247,7 +247,10 @@ export class BinanceService {
         return await this.executeBinanceApiAction(apiKey, apiSecret, async (binance, binanceTest) => {
             try {
                 // Parameter Validation
-                let { symbol, side, type, quantity, price, leverage, isolated, signalType } = orderDto;
+                let { symbol, side, type, quantity, price, leverage, signalType } = orderDto;
+
+                let isolated = strategy.isolated || false;
+
 
                 if (!symbol || !side || !type || !quantity || !price || !signalType) {
                     throw new Error("Missing required parameters");
@@ -311,7 +314,6 @@ export class BinanceService {
 
                 price = await this.binanceExchaneService.formatPrice(symbol, price)
                 await this.configureLeverageAndMarginSettings(instance, symbol, leverage, isolated, userId);
-
 
                 let order: any = ""
                 // Place Order

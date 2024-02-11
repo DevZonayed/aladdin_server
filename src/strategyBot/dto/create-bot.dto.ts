@@ -46,6 +46,13 @@ export class CreateBotDto {
   })
   readonly csrfToken: string;
 
+  @ApiProperty({
+    type: Number,
+    description: 'Scrap Interval',
+    example: 5000,
+  })
+  readonly scrapInterval: number;
+
 
   @ApiProperty({
     type: Boolean,

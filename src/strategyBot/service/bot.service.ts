@@ -6,6 +6,7 @@ import { SortBy } from 'src/common/enum/enum-sort-by';
 import { StrategyService } from 'src/strategy/service/strategy.service';
 import { CreateBotDto } from '../dto/create-bot.dto';
 import { UpdateBotDto } from '../dto/update-bot.dto';
+import { UpdateBotTokenDto } from '../dto/update-tokens.dto';
 import { Bot } from '../entities/bot.entity';
 import { WorkerService } from '../worker/service/worker.service';
 
@@ -65,9 +66,7 @@ export class BotService {
         );
       }
 
-      let result = await this.workerService.handleStartWorker(bot);
-      return result;
-
+      return await this.workerService.handleStartWorker(bot);
 
     } catch (err) {
       return createApiResponse(
@@ -116,6 +115,7 @@ export class BotService {
     let result = await this.workerService.getBotStatus(bot);
     return result;
   }
+
   async findAll(
     page: number,
     limit: number,
@@ -245,13 +245,35 @@ export class BotService {
         .exec();
 
       // Restart Bot
-      await this.handleStartBot(data.BotName)
+      await this.handleStartBot(data._id);
       return createApiResponse(
         HttpStatus.OK,
         SUCCESS_RESPONSE,
         DATA_FOUND,
         data,
       );
+    } catch (error) {
+      return createApiResponse(
+        HttpStatus.BAD_REQUEST,
+        FAIELD_RESPONSE,
+        SOMETHING_WENT_WRONG,
+        error,
+      );
+    }
+  }
+
+
+  async updateBotToken(id: string, updateBotTokenDto: UpdateBotTokenDto) {
+    try {
+      let stopBot = await this.handleStopBot(id);
+      if (stopBot.statusCode != HttpStatus.ACCEPTED || stopBot.message != "Worker Not Found") {
+        return stopBot;
+      }
+
+      return await this.update(id, updateBotTokenDto);
+
+
+
     } catch (error) {
       return createApiResponse(
         HttpStatus.BAD_REQUEST,

@@ -52,6 +52,14 @@ export class CreateStrategyDto {
   readonly capital: number;
 
   @ApiProperty({
+    type: Boolean,
+    description: 'Is the leverage would be isolated or not',
+    example: false,
+    required: true
+  })
+  readonly isolated: number;
+
+  @ApiProperty({
     type: String,
     description: 'Order type for new order',
     example: PositionTypeEnum.LIMIT,

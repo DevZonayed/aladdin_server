@@ -27,31 +27,10 @@ export class WorkerService {
 
             let existBot: ScrapWorker = await this.workerCacheService.getWorker(botDetails._id)
             if (existBot) {
-                if (existBot.isWorking) {
-                    return createApiResponse(
-                        HttpStatus.ACCEPTED,
-                        SUCCESS_RESPONSE,
-                        "Already Exist",
-                        [],
-                    );
-
-                } else {
-                    existBot.startWorker();
-                    // Send confirmation to admins
-                    let message = `${botDetails.BotName} Bot Started`
-                    await sendInfoNotificationToAdmins(this.mailNotificationService, message)
-
-                    return createApiResponse(
-                        HttpStatus.ACCEPTED,
-                        SUCCESS_RESPONSE,
-                        "Already Exist",
-                        [],
-                    );
-                }
+                this.workerCacheService.deleteWorker(botDetails._id)
             }
 
             let { csrfToken = "", isPublic, p20t = "" } = botDetails;
-
             if (!isPublic && (csrfToken == "" || p20t == "")) {
                 let message = `${botDetails.BotName}'s Token Missing`
                 sendErrorNotificationToAdmins(this.mailNotificationService, message)

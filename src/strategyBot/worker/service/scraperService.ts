@@ -29,17 +29,18 @@ export class ScrapWorker {
     private BotModel: Model<Bot>
     private mailNotificationService: NotificationService
     private configData: any = {
-        scrapInterval: 3000
+        scrapInterval: 5000
     }
 
 
     constructor(strategyService: StrategyService, botDto, mailNotificationService: NotificationService, BotModel: Model<Bot>) {
-        let { _id: id, BotName, strategyId, p20t, csrfToken } = botDto;
+        let { _id: id, BotName, strategyId, p20t, csrfToken, scrapInterval = 5000 } = botDto;
         Object.assign(this, { id: id.toString(), strName: BotName, scrapId: strategyId, p20t, csrfToken, strategyService, botDto, mailNotificationService, BotModel });
         this.isWorking = false;
         this.updateTime = Date.now();
         this.dataWatcher = new DataWatcher();
         this.errorMessage = null;
+        this.configData.scrapInterval = scrapInterval;
     }
 
     public getWorkerStatus() {

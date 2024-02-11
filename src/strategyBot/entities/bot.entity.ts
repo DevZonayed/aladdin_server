@@ -21,6 +21,9 @@ export class Bot extends Document {
   @Prop({ type: String, required: true, trim: true })
   csrfToken: string;
 
+  @Prop({ type: Number, required: true, trim: true, default: 5000 })
+  scrapInterval: number;
+
   @Prop({ type: Boolean, default: false })
   isPublic: boolean
 
