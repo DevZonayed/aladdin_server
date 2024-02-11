@@ -68,6 +68,15 @@ __decorate([
 ], CreateStrategyDto.prototype, "capital", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
+        type: Boolean,
+        description: 'Is the leverage would be isolated or not',
+        example: false,
+        required: true
+    }),
+    __metadata("design:type", Number)
+], CreateStrategyDto.prototype, "isolated", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
         type: String,
         description: 'Order type for new order',
         example: BinanceEnum_1.PositionTypeEnum.LIMIT,

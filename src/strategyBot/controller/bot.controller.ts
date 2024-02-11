@@ -8,11 +8,9 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
-  UseInterceptors
+  UseGuards
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators';
 import { DataSearchDecorator } from 'src/common/decorators/data-search.decorator';
 import { UserRole } from 'src/common/enum';
@@ -20,6 +18,7 @@ import { SortBy } from 'src/common/enum/enum-sort-by';
 import { AuthGuard, RolesGuard } from 'src/common/guard';
 import { CreateBotDto } from '../dto/create-bot.dto';
 import { UpdateBotDto } from '../dto/update-bot.dto';
+import { UpdateBotTokenDto } from '../dto/update-tokens.dto';
 import { BotService } from '../service/bot.service';
 
 @Controller('bot')
@@ -122,8 +121,6 @@ export class BotController {
 
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('StrategyImage'))
   async update(
     @Param('id') id: string,
     @Body() updateStrategyDto: UpdateBotDto,
@@ -133,6 +130,20 @@ export class BotController {
       updateStrategyDto,
     );
   }
+
+  @Patch('update-token:id')
+  @UseGuards(AuthGuard, RolesGuard)
+  async updateToken(
+    @Param('id') id: string,
+    @Body() updateStrategyDto: UpdateBotTokenDto,
+  ): Promise<any> {
+    return this.BotService.updateBotToken(
+      id,
+      updateStrategyDto,
+    );
+  }
+
+
 
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)

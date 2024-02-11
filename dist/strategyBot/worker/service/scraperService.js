@@ -10,14 +10,15 @@ const axios = require("axios");
 class ScrapWorker {
     constructor(strategyService, botDto, mailNotificationService, BotModel) {
         this.configData = {
-            scrapInterval: 3000
+            scrapInterval: 5000
         };
-        let { _id: id, BotName, strategyId, p20t, csrfToken } = botDto;
+        let { _id: id, BotName, strategyId, p20t, csrfToken, scrapInterval = 5000 } = botDto;
         Object.assign(this, { id: id.toString(), strName: BotName, scrapId: strategyId, p20t, csrfToken, strategyService, botDto, mailNotificationService, BotModel });
         this.isWorking = false;
         this.updateTime = Date.now();
         this.dataWatcher = new watcherService_1.DataWatcher();
         this.errorMessage = null;
+        this.configData.scrapInterval = scrapInterval;
     }
     getWorkerStatus() {
         let openOrders = this.dataWatcher.runningOrders();

@@ -1,6 +1,7 @@
 import { SortBy } from 'src/common/enum/enum-sort-by';
 import { CreateBotDto } from '../dto/create-bot.dto';
 import { UpdateBotDto } from '../dto/update-bot.dto';
+import { UpdateBotTokenDto } from '../dto/update-tokens.dto';
 import { BotService } from '../service/bot.service';
 export declare class BotController {
     private readonly BotService;
@@ -17,6 +18,7 @@ export declare class BotController {
         payload: any;
     }>;
     update(id: string, updateStrategyDto: UpdateBotDto): Promise<any>;
+    updateToken(id: string, updateStrategyDto: UpdateBotTokenDto): Promise<any>;
     remove(id: string): Promise<{
         statusCode: import("@nestjs/common").HttpStatus;
         response: string;

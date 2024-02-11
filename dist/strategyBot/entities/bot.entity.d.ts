@@ -30,6 +30,7 @@ export declare class Bot extends Document {
     strategyId: string;
     p20t: string;
     csrfToken: string;
+    scrapInterval: number;
     isPublic: boolean;
     runningOrders: number;
     isRunning: boolean;

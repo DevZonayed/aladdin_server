@@ -48,6 +48,10 @@ __decorate([
     __metadata("design:type", String)
 ], Strategy.prototype, "partialOrderType", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: Boolean, required: true, default: false }),
+    __metadata("design:type", Boolean)
+], Strategy.prototype, "isolated", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: Number, required: true }),
     __metadata("design:type", Number)
 ], Strategy.prototype, "minimumCapitalToSubscribe", void 0);

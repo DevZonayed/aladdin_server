@@ -47,8 +47,7 @@ let BotService = class BotService {
             if (!bot) {
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.NO_DATA_FOUND, constants_1.STRATEGY_BOT_NOT_FOUND, null);
             }
-            let result = await this.workerService.handleStartWorker(bot);
-            return result;
+            return await this.workerService.handleStartWorker(bot);
         }
         catch (err) {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.CONFLICT, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, err.message);
@@ -153,8 +152,20 @@ let BotService = class BotService {
             const data = await this.BotModel
                 .findByIdAndUpdate(id, updateBotDto, { new: true })
                 .exec();
-            await this.handleStartBot(data.BotName);
+            await this.handleStartBot(data._id);
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.OK, constants_1.SUCCESS_RESPONSE, constants_1.DATA_FOUND, data);
+        }
+        catch (error) {
+            return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
+        }
+    }
+    async updateBotToken(id, updateBotTokenDto) {
+        try {
+            let stopBot = await this.handleStopBot(id);
+            if (stopBot.statusCode != common_1.HttpStatus.ACCEPTED || stopBot.message != "Worker Not Found") {
+                return stopBot;
+            }
+            return await this.update(id, updateBotTokenDto);
         }
         catch (error) {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);

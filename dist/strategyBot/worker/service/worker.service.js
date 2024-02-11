@@ -34,15 +34,7 @@ let WorkerService = class WorkerService {
         try {
             let existBot = await this.workerCacheService.getWorker(botDetails._id);
             if (existBot) {
-                if (existBot.isWorking) {
-                    return (0, constants_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Already Exist", []);
-                }
-                else {
-                    existBot.startWorker();
-                    let message = `${botDetails.BotName} Bot Started`;
-                    await (0, botMail_utils_1.sendInfoNotificationToAdmins)(this.mailNotificationService, message);
-                    return (0, constants_1.createApiResponse)(common_1.HttpStatus.ACCEPTED, constants_1.SUCCESS_RESPONSE, "Already Exist", []);
-                }
+                this.workerCacheService.deleteWorker(botDetails._id);
             }
             let { csrfToken = "", isPublic, p20t = "" } = botDetails;
             if (!isPublic && (csrfToken == "" || p20t == "")) {

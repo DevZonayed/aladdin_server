@@ -218,7 +218,8 @@ let BinanceService = class BinanceService {
         let { apiKey, apiSecret, isTestMode, _id: userId } = credentials;
         return await this.executeBinanceApiAction(apiKey, apiSecret, async (binance, binanceTest) => {
             try {
-                let { symbol, side, type, quantity, price, leverage, isolated, signalType } = orderDto;
+                let { symbol, side, type, quantity, price, leverage, signalType } = orderDto;
+                let isolated = strategy.isolated || false;
                 if (!symbol || !side || !type || !quantity || !price || !signalType) {
                     throw new Error("Missing required parameters");
                 }

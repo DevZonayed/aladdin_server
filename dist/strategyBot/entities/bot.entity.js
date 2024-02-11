@@ -40,6 +40,10 @@ __decorate([
     __metadata("design:type", String)
 ], Bot.prototype, "csrfToken", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: Number, required: true, trim: true, default: 5000 }),
+    __metadata("design:type", Number)
+], Bot.prototype, "scrapInterval", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: Boolean, default: false }),
     __metadata("design:type", Boolean)
 ], Bot.prototype, "isPublic", void 0);

@@ -14,7 +14,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BotController = void 0;
 const common_1 = require("@nestjs/common");
-const platform_express_1 = require("@nestjs/platform-express");
 const swagger_1 = require("@nestjs/swagger");
 const decorators_1 = require("../../common/decorators");
 const data_search_decorator_1 = require("../../common/decorators/data-search.decorator");
@@ -23,6 +22,7 @@ const enum_sort_by_1 = require("../../common/enum/enum-sort-by");
 const guard_1 = require("../../common/guard");
 const create_bot_dto_1 = require("../dto/create-bot.dto");
 const update_bot_dto_1 = require("../dto/update-bot.dto");
+const update_tokens_dto_1 = require("../dto/update-tokens.dto");
 const bot_service_1 = require("../service/bot.service");
 let BotController = class BotController {
     constructor(BotService) {
@@ -53,6 +53,9 @@ let BotController = class BotController {
     }
     async update(id, updateStrategyDto) {
         return this.BotService.update(id, updateStrategyDto);
+    }
+    async updateToken(id, updateStrategyDto) {
+        return this.BotService.updateBotToken(id, updateStrategyDto);
     }
     async remove(id) {
         return this.BotService.remove(id);
@@ -128,14 +131,21 @@ __decorate([
 __decorate([
     (0, common_1.Patch)(':id'),
     (0, common_1.UseGuards)(guard_1.AuthGuard, guard_1.RolesGuard),
-    (0, swagger_1.ApiConsumes)('multipart/form-data'),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('StrategyImage')),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, update_bot_dto_1.UpdateBotDto]),
     __metadata("design:returntype", Promise)
 ], BotController.prototype, "update", null);
+__decorate([
+    (0, common_1.Patch)('update-token:id'),
+    (0, common_1.UseGuards)(guard_1.AuthGuard, guard_1.RolesGuard),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_tokens_dto_1.UpdateBotTokenDto]),
+    __metadata("design:returntype", Promise)
+], BotController.prototype, "updateToken", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, common_1.UseGuards)(guard_1.AuthGuard, guard_1.RolesGuard),

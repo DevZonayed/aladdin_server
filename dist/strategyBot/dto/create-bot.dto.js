@@ -65,6 +65,14 @@ __decorate([
 ], CreateBotDto.prototype, "csrfToken", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
+        type: Number,
+        description: 'Scrap Interval',
+        example: 5000,
+    }),
+    __metadata("design:type", Number)
+], CreateBotDto.prototype, "scrapInterval", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
         type: Boolean,
         description: 'Is the strategy of b is Public?',
         example: true,

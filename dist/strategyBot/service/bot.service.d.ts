@@ -28,6 +28,7 @@ import { SortBy } from 'src/common/enum/enum-sort-by';
 import { StrategyService } from 'src/strategy/service/strategy.service';
 import { CreateBotDto } from '../dto/create-bot.dto';
 import { UpdateBotDto } from '../dto/update-bot.dto';
+import { UpdateBotTokenDto } from '../dto/update-tokens.dto';
 import { Bot } from '../entities/bot.entity';
 import { WorkerService } from '../worker/service/worker.service';
 export declare class BotService {
@@ -67,6 +68,12 @@ export declare class BotService {
         payload: any;
     }>;
     update(id: string, updateBotDto: UpdateBotDto): Promise<{
+        statusCode: HttpStatus;
+        response: string;
+        message: string;
+        payload: any;
+    }>;
+    updateBotToken(id: string, updateBotTokenDto: UpdateBotTokenDto): Promise<{
         statusCode: HttpStatus;
         response: string;
         message: string;

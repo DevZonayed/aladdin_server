@@ -8,11 +8,9 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
-  UseInterceptors
+  UseGuards
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators';
 import { DataSearchDecorator } from 'src/common/decorators/data-search.decorator';
 import { UserRole } from 'src/common/enum';
@@ -99,6 +97,8 @@ export class StrategyController {
       updateStrategyDto,
     );
   }
+
+
 
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)

@@ -5,6 +5,7 @@ export declare class CreateBotDto {
     readonly strategyId: string;
     readonly p20t: string;
     readonly csrfToken: string;
+    readonly scrapInterval: number;
     readonly isPublic: boolean;
     readonly runningOrders: number;
 }
