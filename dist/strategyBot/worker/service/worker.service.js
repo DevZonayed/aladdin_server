@@ -32,9 +32,9 @@ let WorkerService = class WorkerService {
     }
     async handleStartWorker(botDetails) {
         try {
-            let existBot = await this.workerCacheService.getWorker(botDetails._id);
+            let existBot = await this.workerCacheService.getWorker(botDetails?._id?.toString());
             if (existBot) {
-                this.workerCacheService.deleteWorker(botDetails._id);
+                this.workerCacheService.deleteWorker(botDetails?._id?.toString());
             }
             let { csrfToken = "", isPublic, p20t = "" } = botDetails;
             if (!isPublic && (csrfToken == "" || p20t == "")) {
