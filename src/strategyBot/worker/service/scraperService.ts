@@ -210,13 +210,14 @@ export class ScrapWorker {
             this.notifyTelegram("Unusual Activity Detacted!\n token checking!")
             await isValidToken(this.p20t, this.csrfToken, this.botDto.BotName).then(res => {
                 this.startWorker()
+                this.scrapAndUpdate()
             }).catch(err => {
                 let isExpaired = err?.response?.data;
                 if (isExpaired) {
                     sendErrorNotificationToAdmins(this.mailNotificationService, "Token Expaired !❌❌\nPlease Update Token Immediately!")
                     this.notifyTelegram("Token Expaired !❌❌\nPlease Update Token Immediately!")
                 } else {
-                    this.startWorker()
+                    // this.startWorker()
                     this.notifyTelegram("Something Went Wrong!\nToken Validation Failed!")
                 }
             })

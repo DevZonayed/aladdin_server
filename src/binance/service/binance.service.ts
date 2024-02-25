@@ -247,7 +247,6 @@ export class BinanceService {
                 // Parameter Validation
                 let { symbol, side, type, quantity, price, leverage, signalType } = orderDto;
 
-                let isolated = strategy?.isolated || false;
 
 
                 if (!symbol || !side || !type || !quantity || !price || !signalType) {
@@ -260,6 +259,7 @@ export class BinanceService {
                 type = type.toUpperCase();
                 let newOrderType = strategy.newOrderType || "MARKET";
                 let partialOrderType = strategy.partialOrderType || "MARKET";
+                let isolated = strategy?.isolated || false;
 
 
                 if (!Object.values(SignalTypeEnum).includes(signalType as any)) {

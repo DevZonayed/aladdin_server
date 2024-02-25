@@ -52,8 +52,8 @@ export class DataWatcher {
     }
 
     isUnusualActivityDetected(newData) {
-        if (this.previousData.length > 1 && newData.length == 0 && this.unUsualDetected == null) {
-            this.triggerEvent('unUsualActivity', { issue: "no_new_data" });
+        if (this.previousData.length > 0 && newData.length == 0 && this.unUsualDetected == null) {
+            this.triggerEvent('unUsualActivity', newData);
             this.unUsualDetected = true;
             return true;
         }
