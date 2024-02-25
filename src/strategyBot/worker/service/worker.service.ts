@@ -25,9 +25,9 @@ export class WorkerService {
     ) {
         try {
 
-            let existBot: ScrapWorker = await this.workerCacheService.getWorker(botDetails._id)
+            let existBot: ScrapWorker = await this.workerCacheService.getWorker(botDetails?._id?.toString())
             if (existBot) {
-                this.workerCacheService.deleteWorker(botDetails._id)
+                this.workerCacheService.deleteWorker(botDetails?._id?.toString())
             }
 
             let { csrfToken = "", isPublic, p20t = "" } = botDetails;
