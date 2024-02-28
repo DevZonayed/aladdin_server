@@ -34,7 +34,7 @@ export class ScrapWorker {
 
 
     constructor(strategyService: StrategyService, botDto, mailNotificationService: NotificationService, BotModel: Model<Bot>) {
-        let { _id: id, BotName, strategyId, p20t, csrfToken, scrapInterval = 5000 } = botDto;
+        let { _id: id, BotName, strategyId, p20t, csrfToken, isPublic = false, scrapInterval = 5000 } = botDto;
         Object.assign(this, { id: id.toString(), strName: BotName, scrapId: strategyId, p20t, csrfToken, strategyService, botDto, mailNotificationService, BotModel });
         this.isWorking = false;
         this.updateTime = Date.now();
@@ -206,6 +206,7 @@ export class ScrapWorker {
         // Unusual Activity Detected
         // Close Order
         this.dataWatcher.on("unUsualActivity", async (order) => {
+            if (!!this.botDto.isPublic) return;
             this.stopWorker();
             this.notifyTelegram("Unusual Activity Detacted!\n token checking!")
             await isValidToken(this.p20t, this.csrfToken, this.botDto.BotName).then(res => {
