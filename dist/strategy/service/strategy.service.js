@@ -16,16 +16,15 @@ exports.StrategyService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const BinanceEnum_1 = require("../../binance/enum/BinanceEnum");
 const binance_service_1 = require("../../binance/service/binance.service");
 const constants_1 = require("../../common/constants");
 const user_service_1 = require("../../user/service/user.service");
 const strategy_entity_1 = require("../entities/strategy.entity");
 let StrategyService = class StrategyService {
-    constructor(StrategyModel, userService, binanceService) {
+    constructor(StrategyModel, binanceService, userService) {
         this.StrategyModel = StrategyModel;
-        this.userService = userService;
         this.binanceService = binanceService;
+        this.userService = userService;
     }
     async create(createStrategyDto) {
         try {
@@ -153,9 +152,6 @@ let StrategyService = class StrategyService {
             if (!strategy) {
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND, []);
             }
-            if (strategy.stopNewOrder && (order.signalType == BinanceEnum_1.SignalTypeEnum.NEW || order.signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY)) {
-                return (0, constants_1.createApiResponse)(common_1.HttpStatus.CONTINUE, constants_1.FAIELD_RESPONSE, constants_1.STRATEGY_INCOMING_ORDER_DISABLED, []);
-            }
             const credentials = await this.userService.getCredentialsOfStrategy(strategy._id);
             if (credentials.length === 0) {
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND, []);
@@ -185,8 +181,10 @@ exports.StrategyService = StrategyService;
 exports.StrategyService = StrategyService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(strategy_entity_1.Strategy.name)),
+    __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => binance_service_1.BinanceService))),
+    __param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => user_service_1.UserService))),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        user_service_1.UserService,
-        binance_service_1.BinanceService])
+        binance_service_1.BinanceService,
+        user_service_1.UserService])
 ], StrategyService);
 //# sourceMappingURL=strategy.service.js.map

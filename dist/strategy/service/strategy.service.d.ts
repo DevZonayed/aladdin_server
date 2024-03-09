@@ -33,9 +33,9 @@ import { UpdateStrategyDto } from '../dto/update-strategy.dto';
 import { Strategy } from '../entities/strategy.entity';
 export declare class StrategyService {
     private readonly StrategyModel;
-    private readonly userService;
     private readonly binanceService;
-    constructor(StrategyModel: Model<Strategy>, userService: UserService, binanceService: BinanceService);
+    private readonly userService;
+    constructor(StrategyModel: Model<Strategy>, binanceService: BinanceService, userService: UserService);
     create(createStrategyDto: CreateStrategyDto): Promise<{
         statusCode: HttpStatus;
         response: string;
@@ -67,10 +67,14 @@ export declare class StrategyService {
         message: string;
         payload: any;
     }>;
-    handleWebHook(endPoint: string, order: OrderWebHookDto): Promise<any[] | {
+    handleWebHook(endPoint: string, order: OrderWebHookDto): Promise<{
         statusCode: HttpStatus;
         response: string;
         message: string;
         payload: any;
+    } | {
+        successResults: PromiseSettledResult<any>[];
+        failedResults: PromiseSettledResult<any>[];
+        message: string;
     }>;
 }

@@ -16,18 +16,23 @@ exports.BinanceService = void 0;
 const cache_manager_1 = require("@nestjs/cache-manager");
 const common_1 = require("@nestjs/common");
 const constants_1 = require("../../common/constants");
+const mail_type_enum_1 = require("../../notification/mail/enum/mail.type.enum");
+const notification_service_1 = require("../../notification/mail/service/notification.service");
 const createdBy_enum_1 = require("../../order/enums/createdBy.enum");
 const status_enum_1 = require("../../order/enums/status.enum");
 const order_service_1 = require("../../order/service/order.service");
+const strategy_service_1 = require("../../strategy/service/strategy.service");
 const user_service_1 = require("../../user/service/user.service");
 const BinanceEnum_1 = require("../enum/BinanceEnum");
 const trade_calculations_1 = require("../utils/trade.calculations");
 const exchangeInfo_service_1 = require("./exchangeInfo.service");
 const Binance = require('node-binance-api');
 let BinanceService = class BinanceService {
-    constructor(userService, orderService, cacheService) {
+    constructor(userService, orderService, strategyService, notificationService, cacheService) {
         this.userService = userService;
         this.orderService = orderService;
+        this.strategyService = strategyService;
+        this.notificationService = notificationService;
         this.cacheService = cacheService;
         this.binanceExchaneService = new exchangeInfo_service_1.BinanceExchaneService(cacheService);
     }
@@ -78,20 +83,71 @@ let BinanceService = class BinanceService {
             let accauntOrderPromises = finalCredentials.map(async (credential) => {
                 return await this.generateFutureOrders(strategy, credential, OrderWebHookDto);
             });
-            let binanceOrderResult = await Promise.all(accauntOrderPromises);
-            let saveResult = await this.persistOrderResults(binanceOrderResult);
+            let binanceOrderResult = await Promise.allSettled(accauntOrderPromises);
+            let saveResult = await this.persistOrderResults(binanceOrderResult, strategy, OrderWebHookDto, finalCredentials);
             return saveResult;
         }
         catch (err) {
             throw Error(err.message);
         }
     }
-    async persistOrderResults(results) {
+    async persistOrderResults(results, strategy, orderDto, finalCredentials) {
+        let signalType = orderDto.signalType.toUpperCase();
         const orderSavePromises = results.map(result => this.handleOrderResultProcessing(result));
-        return await Promise.all(orderSavePromises);
+        let persistOrderResults = await Promise.allSettled(orderSavePromises);
+        let successResults = persistOrderResults.filter(result => result.status == "fulfilled");
+        let failedResults = persistOrderResults.filter(result => result.status == "rejected");
+        successResults.map((item, index) => {
+            if (item.status == "fulfilled" && item.value?.payload) {
+                let failPayload = {
+                    status: "rejected",
+                    reason: {
+                        message: item.value.payload.msg
+                    }
+                };
+                failedResults.push(failPayload);
+                successResults.splice(index, 1);
+            }
+        });
+        let mailMessage = `<p>We received a ${signalType} signal in ${strategy.StrategyName}. </p>`;
+        if (successResults.length == finalCredentials.length) {
+            mailMessage += "<p>All accounts subscribed to it were successfully executed 😍</p>\n";
+        }
+        else if (failedResults.length == finalCredentials.length) {
+            mailMessage += "<p>Failed to execute the order for all subscribed accounts 😥</p>\n";
+        }
+        else if (successResults.length > 0 && finalCredentials.length > 0) {
+            mailMessage += `<p>Successfully executed the order for ${successResults.length} subscribed accounts 😍\n and failed for ${failedResults.length} subscribed accounts 😥</p>`;
+        }
+        let failedReasonsArr = failedResults.map((item) => item.reason.message);
+        let errorCount = failedReasonsArr.reduce((acc, curr) => {
+            acc[curr] = (acc[curr] || 0) + 1;
+            return acc;
+        }, {});
+        let formattedErrorMessages = Object.keys(errorCount).map(key => `In ${errorCount[key]} Accaunt(s): ${key}`).join('\n');
+        mailMessage += `\n${formattedErrorMessages}`;
+        this.notificationService.sendNotificationToAllAdmins({
+            subject: "Alert Notification From Aladdin",
+            message: mailMessage,
+            type: mail_type_enum_1.MailNotificationTypeEnum.EXITING
+        });
+        return {
+            successResults,
+            failedResults,
+            message: mailMessage
+        };
     }
     async handleOrderResultProcessing(result) {
         try {
+            if (result.status == "rejected") {
+                throw new Error(result.reason.message);
+            }
+            else if (result.status == "fulfilled") {
+                result = result.value;
+            }
+            else {
+                throw new Error("Order Promise Status Unknown.");
+            }
             const { userId, orderDto, success, message, order, ratio, strategy } = this.retrieveDataFromOrderResult(result);
             if (!success) {
                 throw new Error(message);
@@ -243,24 +299,42 @@ let BinanceService = class BinanceService {
                     binanceBalanceRes = binanceBalanceRes.result;
                 }
                 if (prevOrderRes.success) {
-                    prevOrderRes = prevOrderRes.result;
+                    prevOrderRes = prevOrderRes?.result?.data;
                 }
                 else {
                     prevOrderRes = null;
                 }
+                this.handleOrderBounced(prevOrderRes, signalType, strategy);
+                if (prevOrderRes) {
+                    if (signalType === BinanceEnum_1.SignalTypeEnum.NEW) {
+                        await this.updateOrderForNewSignal(prevOrderRes);
+                    }
+                    else if (signalType === BinanceEnum_1.SignalTypeEnum.RE_ENTRY) {
+                        await this.updateOrderForReEntrySignal(prevOrderRes, strategy);
+                    }
+                }
+                else {
+                    this.handleNoPreviousOrder(prevOrderRes, signalType, strategy);
+                }
                 let instance = isTestMode ? binanceTest : binance;
+                let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
+                let isMaxPositionIncludeOpen = Boolean(strategy?.maxPosition?.includeOpen) || false;
+                let openPositionCount = await this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
+                if (maxPositionLimit < openPositionCount) {
+                    throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`);
+                }
                 let rootTradeAmount = Number(price) * Number(quantity);
                 let rootTradeCapital = Number(strategy.capital);
                 let myCapital = Number(binanceBalanceRes?.balance);
                 let maxTradeAmount = (0, trade_calculations_1.calculateAmountFromPercentage)(myCapital, Number(strategy.tradeMaxAmountPercentage));
-                let orderRatio = prevOrderRes?.data?.initialOrderRatio ? Number(prevOrderRes.data.initialOrderRatio) : null;
+                let orderRatio = prevOrderRes?.initialOrderRatio ? Number(prevOrderRes.initialOrderRatio) : null;
                 let { tradeAmount: accauntTradeAmount, ratio } = (0, trade_calculations_1.calculateMyTradeAmount)(rootTradeAmount, rootTradeCapital, myCapital, maxTradeAmount, orderRatio);
                 quantity = (0, trade_calculations_1.calculateQuantity)(accauntTradeAmount, price);
                 if (signalType == BinanceEnum_1.SignalTypeEnum.CLOSE) {
                     signalType = BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE;
-                    if (prevOrderRes?.data?.orderQty) {
-                        let orderQty = Number(prevOrderRes?.data?.orderQty);
-                        let closedQty = Number(prevOrderRes?.data?.closedQty) || 0;
+                    if (prevOrderRes?.orderQty) {
+                        let orderQty = Number(prevOrderRes?.orderQty);
+                        let closedQty = Number(prevOrderRes?.closedQty) || 0;
                         quantity = (orderQty - closedQty + 0.01);
                     }
                 }
@@ -466,6 +540,41 @@ let BinanceService = class BinanceService {
             success: true
         };
     }
+    async getBinanceRiskPositionCount(binance) {
+        try {
+            let positions = await binance.futuresPositionRisk();
+            const openPositions = positions.filter(position => parseFloat(position.positionAmt) !== 0);
+            return openPositions.length || 0;
+        }
+        catch (err) {
+            throw err;
+        }
+    }
+    async getBinanceOpenOrderCount(binance) {
+        try {
+            let openOrders = await binance.futuresOpenOrders();
+            return openOrders.length || 0;
+        }
+        catch (err) {
+            throw err;
+        }
+    }
+    async getBinanceAccountOrderCount(binance, includeOpen = false) {
+        try {
+            let orderCount = 0;
+            let countPromises = [];
+            countPromises.push(this.getBinanceRiskPositionCount(binance));
+            if (includeOpen) {
+                countPromises.push(this.getBinanceOpenOrderCount(binance));
+            }
+            let results = await Promise.all(countPromises) || [];
+            orderCount = results.reduce((a, b) => a + b, 0) || 0;
+            return orderCount;
+        }
+        catch (err) {
+            throw err;
+        }
+    }
     async executeBinanceApiAction(apiKey, secretKey, action) {
         if (!apiKey || !secretKey) {
             throw new Error(constants_1.INVALID_BINANCE_CREDENTIALS);
@@ -497,13 +606,43 @@ let BinanceService = class BinanceService {
             binanceTest = null;
         }
     }
+    async updateOrderForNewSignal(prevOrderRes) {
+        await this.orderService.update(prevOrderRes._id, { status: status_enum_1.StatusEnum.CLOSED, closeReason: "New Signal found" });
+        prevOrderRes = null;
+    }
+    async updateOrderForReEntrySignal(prevOrderRes, strategy) {
+        await this.orderService.update(prevOrderRes._id, { reEntryCount: prevOrderRes.reEntryCount ? prevOrderRes.reEntryCount + 1 : 0 });
+        if (prevOrderRes.reEntryCount >= (strategy.maxReEntry || 4)) {
+            await this.strategyService.update(strategy._id, { stopNewOrder: true });
+            throw new Error(`Max Re-Entry Count reached for ${strategy.StrategyName}`);
+        }
+    }
+    handleNoPreviousOrder(prevOrderRes, signalType, strategy) {
+        if ((signalType === BinanceEnum_1.SignalTypeEnum.NEW || signalType === BinanceEnum_1.SignalTypeEnum.RE_ENTRY) && strategy.stopNewOrder) {
+            throw new Error(`New ${signalType} found in ${strategy.StrategyName} this strategy But new order is stopped`);
+        }
+    }
+    handleOrderBounced(prevOrderRes, signalType, strategy) {
+        if (signalType === BinanceEnum_1.SignalTypeEnum.NEW && strategy.stopNewOrder) {
+            throw new Error(`We have found ${signalType} signal in ${strategy.StrategyName} this strategy, but new orders are currently disabled.`);
+        }
+        if (!prevOrderRes && signalType === BinanceEnum_1.SignalTypeEnum.RE_ENTRY) {
+            throw new Error(`We have found ${signalType} signal in ${strategy.StrategyName} this strategy, but new orders are currently disabled.`);
+        }
+        return;
+    }
 };
 exports.BinanceService = BinanceService;
 exports.BinanceService = BinanceService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)((0, common_1.forwardRef)(() => user_service_1.UserService))),
-    __param(2, (0, common_1.Inject)(cache_manager_1.CACHE_MANAGER)),
+    __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => order_service_1.OrderService))),
+    __param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => strategy_service_1.StrategyService))),
+    __param(3, (0, common_1.Inject)((0, common_1.forwardRef)(() => notification_service_1.NotificationService))),
+    __param(4, (0, common_1.Inject)(cache_manager_1.CACHE_MANAGER)),
     __metadata("design:paramtypes", [user_service_1.UserService,
-        order_service_1.OrderService, Object])
+        order_service_1.OrderService,
+        strategy_service_1.StrategyService,
+        notification_service_1.NotificationService, Object])
 ], BinanceService);
 //# sourceMappingURL=binance.service.js.map

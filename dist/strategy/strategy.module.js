@@ -23,8 +23,8 @@ exports.StrategyModule = StrategyModule = __decorate([
             mongoose_1.MongooseModule.forFeature([
                 { name: 'Strategy', schema: strategy_entity_1.StrategySchema },
             ]),
-            user_module_1.UserModule,
-            binance_module_1.BinanceModule
+            (0, common_1.forwardRef)(() => user_module_1.UserModule),
+            (0, common_1.forwardRef)(() => binance_module_1.BinanceModule)
         ],
         controllers: [strategy_controller_1.StrategyController],
         providers: [strategy_service_1.StrategyService],

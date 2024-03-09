@@ -23,6 +23,7 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document, Types } from 'mongoose';
+import { MaxPosition } from '../interfaces/max_position.interface';
 export declare class Strategy extends Document {
     StrategyName: string;
     description: string;
@@ -42,7 +43,9 @@ export declare class Strategy extends Document {
     stopLossPercentage: number;
     users: Types.ObjectId[];
     isRunning: boolean;
+    maxPosition: MaxPosition;
     stopNewOrder: boolean;
+    maxReEntry: number;
     startAt: Date;
     createdBy: Types.ObjectId;
 }

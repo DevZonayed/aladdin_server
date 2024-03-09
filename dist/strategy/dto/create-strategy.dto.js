@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateStrategyDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const BinanceEnum_1 = require("../../binance/enum/BinanceEnum");
+const max_position_interface_1 = require("../interfaces/max_position.interface");
 class CreateStrategyDto {
 }
 exports.CreateStrategyDto = CreateStrategyDto;
@@ -104,15 +105,6 @@ __decorate([
 ], CreateStrategyDto.prototype, "minimumCapitalToSubscribe", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
-        type: Number,
-        description: 'Maximum amount for per trade',
-        example: 10,
-        required: true
-    }),
-    __metadata("design:type", Number)
-], CreateStrategyDto.prototype, "tradeMaxAmountPercentage", void 0);
-__decorate([
-    (0, swagger_1.ApiProperty)({
         type: Boolean,
         description: 'Maximum amount for per trade',
         example: false,
@@ -131,6 +123,24 @@ __decorate([
 ], CreateStrategyDto.prototype, "tradeMaxLeverage", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
+        type: Number,
+        description: 'Maximum amount for per trade',
+        example: 10,
+        required: true
+    }),
+    __metadata("design:type", Number)
+], CreateStrategyDto.prototype, "tradeMaxAmountPercentage", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: Number,
+        description: 'Maximum ReEntry Allowed to this strategy',
+        example: 4,
+        required: true
+    }),
+    __metadata("design:type", Number)
+], CreateStrategyDto.prototype, "maxReEntry", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
         type: Boolean,
         description: 'Is this strategy work with re entry',
         example: true
@@ -145,6 +155,26 @@ __decorate([
     }),
     __metadata("design:type", Boolean)
 ], CreateStrategyDto.prototype, "stopLoss", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: Boolean,
+        description: 'Should it take new order',
+        example: false,
+        default: false
+    }),
+    __metadata("design:type", Boolean)
+], CreateStrategyDto.prototype, "stopNewOrder", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: max_position_interface_1.MaxPositionEntity,
+        description: 'Maximum position limit of the strategy',
+        example: {
+            includeOpen: false,
+            max: 10
+        }
+    }),
+    __metadata("design:type", Object)
+], CreateStrategyDto.prototype, "maxPosition", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: Number,

@@ -1,5 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import {
@@ -26,7 +26,8 @@ import { userVerificationDto } from '../dto/user-verification.dto';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UserService,
+    // private readonly userService: UserService,
+    @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailerService,
     private readonly config: CoreConfigService,

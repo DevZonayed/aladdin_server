@@ -1,10 +1,10 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Module, forwardRef } from '@nestjs/common';
 import { UserModule } from 'src/user/user.module';
 import { NotificationService } from './service/notification.service';
 
 @Global()
 @Module({
-  imports: [UserModule],
+  imports: [forwardRef(() => UserModule)],
   providers: [NotificationService],
   exports: [NotificationService]
 })

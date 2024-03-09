@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PositionTypeEnum } from 'src/binance/enum/BinanceEnum';
+import { MaxPosition, MaxPositionEntity } from '../interfaces/max_position.interface';
 
 export class CreateStrategyDto {
 
@@ -67,6 +68,7 @@ export class CreateStrategyDto {
   })
 
   readonly newOrderType: string;
+
   @ApiProperty({
     type: String,
     description: 'Order type for partial Entry',
@@ -85,14 +87,6 @@ export class CreateStrategyDto {
   readonly minimumCapitalToSubscribe: number;
 
   @ApiProperty({
-    type: Number,
-    description: 'Maximum amount for per trade',
-    example: 10,
-    required: true
-  })
-  readonly tradeMaxAmountPercentage: number;
-
-  @ApiProperty({
     type: Boolean,
     description: 'Maximum amount for per trade',
     example: false,
@@ -109,6 +103,22 @@ export class CreateStrategyDto {
   readonly tradeMaxLeverage: number;
 
   @ApiProperty({
+    type: Number,
+    description: 'Maximum amount for per trade',
+    example: 10,
+    required: true
+  })
+  readonly tradeMaxAmountPercentage: number;
+
+  @ApiProperty({
+    type: Number,
+    description: 'Maximum ReEntry Allowed to this strategy',
+    example: 4,
+    required: true
+  })
+  readonly maxReEntry: number;
+
+  @ApiProperty({
     type: Boolean,
     description: 'Is this strategy work with re entry',
     example: true
@@ -121,6 +131,24 @@ export class CreateStrategyDto {
     example: true
   })
   readonly stopLoss: boolean;
+
+  @ApiProperty({
+    type: Boolean,
+    description: 'Should it take new order',
+    example: false,
+    default: false
+  })
+  readonly stopNewOrder: boolean;
+
+  @ApiProperty({
+    type: MaxPositionEntity,
+    description: 'Maximum position limit of the strategy',
+    example: {
+      includeOpen: false,
+      max: 10
+    }
+  })
+  readonly maxPosition: MaxPosition;
 
   @ApiProperty({
     type: Number,

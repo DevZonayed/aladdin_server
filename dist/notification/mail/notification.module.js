@@ -16,7 +16,7 @@ exports.NotificationModule = NotificationModule;
 exports.NotificationModule = NotificationModule = __decorate([
     (0, common_1.Global)(),
     (0, common_1.Module)({
-        imports: [user_module_1.UserModule],
+        imports: [(0, common_1.forwardRef)(() => user_module_1.UserModule)],
         providers: [notification_service_1.NotificationService],
         exports: [notification_service_1.NotificationService]
     })

@@ -92,6 +92,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: String, }),
     __metadata("design:type", String)
 ], Order.prototype, "closeReason", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Number, default: 0 }),
+    __metadata("design:type", Number)
+], Order.prototype, "reEntryCount", void 0);
 exports.Order = Order = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true, versionKey: false })
 ], Order);

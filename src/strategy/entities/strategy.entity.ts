@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { MaxPosition, MaxPositionEntity } from '../interfaces/max_position.interface';
 
 @Schema({ timestamps: true, versionKey: false })
 export class Strategy extends Document {
@@ -57,8 +58,14 @@ export class Strategy extends Document {
   @Prop({ type: Boolean, default: false })
   isRunning: boolean;
 
+  @Prop({ type: MaxPositionEntity, default: { includeOpen: false, max: 10 } })
+  maxPosition: MaxPosition;
+
   @Prop({ type: Boolean, default: false })
   stopNewOrder: boolean;
+
+  @Prop({ type: Number, default: 3 })
+  maxReEntry: number;
 
   @Prop({ type: Date })
   startAt: Date;

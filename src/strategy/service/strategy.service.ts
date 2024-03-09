@@ -1,9 +1,8 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { SignalTypeEnum } from 'src/binance/enum/BinanceEnum';
 import { BinanceService } from 'src/binance/service/binance.service';
-import { ASSET_NOT_ALLOWED, DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, SOMETHING_WENT_WRONG, STRATEGY_CREATED_FAILED, STRATEGY_CREATED_SUCCESSFULLY, STRATEGY_INCOMING_ORDER_DISABLED, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
+import { ASSET_NOT_ALLOWED, DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, SOMETHING_WENT_WRONG, STRATEGY_CREATED_FAILED, STRATEGY_CREATED_SUCCESSFULLY, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
 import { SortBy } from 'src/common/enum/enum-sort-by';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/service/user.service';
@@ -15,10 +14,9 @@ import { Strategy } from '../entities/strategy.entity';
 @Injectable()
 export class StrategyService {
   constructor(
-    @InjectModel(Strategy.name)
-    private readonly StrategyModel: Model<Strategy>,
-    private readonly userService: UserService,
-    private readonly binanceService: BinanceService,
+    @InjectModel(Strategy.name) private readonly StrategyModel: Model<Strategy>,
+    @Inject(forwardRef(() => BinanceService)) private readonly binanceService: BinanceService,
+    @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
   ) { }
 
   async create(
@@ -250,16 +248,6 @@ export class StrategyService {
           HttpStatus.NOT_FOUND,
           FAIELD_RESPONSE,
           NO_DATA_FOUND,
-          [],
-        );
-      }
-
-      // is new order off
-      if (strategy.stopNewOrder && (order.signalType == SignalTypeEnum.NEW || order.signalType == SignalTypeEnum.RE_ENTRY)) {
-        return createApiResponse(
-          HttpStatus.CONTINUE,
-          FAIELD_RESPONSE,
-          STRATEGY_INCOMING_ORDER_DISABLED,
           [],
         );
       }

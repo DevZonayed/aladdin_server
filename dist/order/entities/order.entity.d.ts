@@ -47,6 +47,7 @@ export declare class Order extends Document {
     isolated: boolean;
     status: StatusEnum;
     closeReason: string;
+    reEntryCount: number;
 }
 export declare const OrderSchema: import("mongoose").Schema<Order, import("mongoose").Model<Order, any, any, any, Document<unknown, any, Order> & Order & {
     _id: Types.ObjectId;

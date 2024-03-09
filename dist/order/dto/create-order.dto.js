@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateOrderDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
+const status_enum_1 = require("../enums/status.enum");
 class CreateOrderDto {
 }
 exports.CreateOrderDto = CreateOrderDto;
@@ -85,4 +86,30 @@ __decorate([
     }),
     __metadata("design:type", Boolean)
 ], CreateOrderDto.prototype, "isolated", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: Number,
+        description: 'Number of reEntry',
+        example: 0,
+    }),
+    __metadata("design:type", Number)
+], CreateOrderDto.prototype, "reEntryCount", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        enum: status_enum_1.StatusEnum,
+        description: 'Status of the order',
+        example: false,
+        default: status_enum_1.StatusEnum.OPEN
+    }),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "status", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'Reason for the order close',
+        example: "",
+    }),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "closeReason", void 0);
 //# sourceMappingURL=create-order.dto.js.map

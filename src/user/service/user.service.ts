@@ -40,8 +40,8 @@ export class UserService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
-    private jwtService: JwtService,
     @Inject(forwardRef(() => BinanceService)) private readonly binanceService: BinanceService,
+    private jwtService: JwtService,
 
   ) { }
 

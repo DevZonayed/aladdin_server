@@ -8,6 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
 const mailer_1 = require("@nestjs-modules/mailer");
@@ -60,6 +63,7 @@ let NotificationService = class NotificationService {
 exports.NotificationService = NotificationService;
 exports.NotificationService = NotificationService = __decorate([
     (0, common_1.Injectable)(),
+    __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => user_service_1.UserService))),
     __metadata("design:paramtypes", [mailer_1.MailerService,
         user_service_1.UserService])
 ], NotificationService);

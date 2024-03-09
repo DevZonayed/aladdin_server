@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StrategySchema = exports.Strategy = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const max_position_interface_1 = require("../interfaces/max_position.interface");
 let Strategy = class Strategy extends mongoose_2.Document {
 };
 exports.Strategy = Strategy;
@@ -88,9 +89,17 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Strategy.prototype, "isRunning", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: max_position_interface_1.MaxPositionEntity, default: { includeOpen: false, max: 10 } }),
+    __metadata("design:type", Object)
+], Strategy.prototype, "maxPosition", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: Boolean, default: false }),
     __metadata("design:type", Boolean)
 ], Strategy.prototype, "stopNewOrder", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Number, default: 3 }),
+    __metadata("design:type", Number)
+], Strategy.prototype, "maxReEntry", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: Date }),
     __metadata("design:type", Date)

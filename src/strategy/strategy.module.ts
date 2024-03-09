@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BinanceModule } from 'src/binance/binance.module';
 import { UserModule } from 'src/user/user.module';
@@ -11,8 +11,8 @@ import { StrategyService } from './service/strategy.service';
     MongooseModule.forFeature([
       { name: 'Strategy', schema: StrategySchema },
     ]),
-    UserModule,
-    BinanceModule
+    forwardRef(() => UserModule),
+    forwardRef(() => BinanceModule)
   ],
   controllers: [StrategyController],
   providers: [StrategyService],

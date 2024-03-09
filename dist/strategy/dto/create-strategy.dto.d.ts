@@ -1,3 +1,4 @@
+import { MaxPosition } from '../interfaces/max_position.interface';
 export declare class CreateStrategyDto {
     readonly StrategyName: string;
     readonly description: string;
@@ -9,11 +10,14 @@ export declare class CreateStrategyDto {
     readonly newOrderType: string;
     readonly partialOrderType: string;
     readonly minimumCapitalToSubscribe: number;
-    readonly tradeMaxAmountPercentage: number;
     readonly respectNotion: boolean;
     readonly tradeMaxLeverage: number;
+    readonly tradeMaxAmountPercentage: number;
+    readonly maxReEntry: number;
     readonly reEntry: boolean;
     readonly stopLoss: boolean;
+    readonly stopNewOrder: boolean;
+    readonly maxPosition: MaxPosition;
     readonly stopLossPercentage: number;
     readonly createdBy: string;
 }

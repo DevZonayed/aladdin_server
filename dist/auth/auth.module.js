@@ -17,7 +17,7 @@ let AuthModule = class AuthModule {
 exports.AuthModule = AuthModule;
 exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
-        imports: [jwt_module_1.JWTAuthModule, user_module_1.UserModule],
+        imports: [jwt_module_1.JWTAuthModule, (0, common_1.forwardRef)(() => user_module_1.UserModule)],
         controllers: [auth_controller_1.AuthController],
         providers: [auth_service_1.AuthService],
         exports: [auth_service_1.AuthService],

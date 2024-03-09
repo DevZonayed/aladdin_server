@@ -6,11 +6,15 @@ import { StrategyService } from '../service/strategy.service';
 export declare class StrategyController {
     private readonly StrategyService;
     constructor(StrategyService: StrategyService);
-    handleWebhook(endpoint: string, orderWebHookDto: OrderWebHookDto): Promise<any[] | {
+    handleWebhook(endpoint: string, orderWebHookDto: OrderWebHookDto): Promise<{
         statusCode: import("@nestjs/common").HttpStatus;
         response: string;
         message: string;
         payload: any;
+    } | {
+        successResults: PromiseSettledResult<any>[];
+        failedResults: PromiseSettledResult<any>[];
+        message: string;
     }>;
     create(createStrategyDto: CreateStrategyDto, requestData: Request): Promise<any>;
     findAll(page: number, limit: number, order: string, sort: SortBy, search: string, startDate: Date, endDate: Date): Promise<any>;

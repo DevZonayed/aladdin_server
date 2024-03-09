@@ -26,11 +26,11 @@ const message_response_1 = require("../../common/constants/message.response");
 const user_cache_keys_1 = require("../cacheKeys/user.cache.keys");
 const user_entity_1 = require("../entities/user.entity");
 let UserService = class UserService {
-    constructor(userModel, cacheManager, jwtService, binanceService) {
+    constructor(userModel, cacheManager, binanceService, jwtService) {
         this.userModel = userModel;
         this.cacheManager = cacheManager;
-        this.jwtService = jwtService;
         this.binanceService = binanceService;
+        this.jwtService = jwtService;
     }
     async create(createUserDto) {
     }
@@ -358,8 +358,8 @@ exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(user_entity_1.User.name)),
     __param(1, (0, common_1.Inject)(cache_manager_1.CACHE_MANAGER)),
-    __param(3, (0, common_1.Inject)((0, common_1.forwardRef)(() => binance_service_1.BinanceService))),
-    __metadata("design:paramtypes", [mongoose_2.Model, Object, jwt_1.JwtService,
-        binance_service_1.BinanceService])
+    __param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => binance_service_1.BinanceService))),
+    __metadata("design:paramtypes", [mongoose_2.Model, Object, binance_service_1.BinanceService,
+        jwt_1.JwtService])
 ], UserService);
 //# sourceMappingURL=user.service.js.map

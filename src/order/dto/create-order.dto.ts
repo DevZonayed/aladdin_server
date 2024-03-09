@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { StatusEnum } from '../enums/status.enum';
 
 export class CreateOrderDto {
   @ApiProperty({
@@ -63,4 +64,27 @@ export class CreateOrderDto {
     required: true,
   })
   readonly isolated: boolean;
+
+  @ApiProperty({
+    type: Number,
+    description: 'Number of reEntry',
+    example: 0,
+  })
+  readonly reEntryCount: number;
+
+  @ApiProperty({
+    type: String,
+    enum: StatusEnum,
+    description: 'Status of the order',
+    example: false,
+    default: StatusEnum.OPEN
+  })
+  readonly status: StatusEnum;
+
+  @ApiProperty({
+    type: String,
+    description: 'Reason for the order close',
+    example: "",
+  })
+  readonly closeReason: string;
 }

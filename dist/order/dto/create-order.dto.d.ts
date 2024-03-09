@@ -1,3 +1,4 @@
+import { StatusEnum } from '../enums/status.enum';
 export declare class CreateOrderDto {
     readonly symbol: string;
     readonly side: string;
@@ -7,4 +8,7 @@ export declare class CreateOrderDto {
     readonly leverage: number;
     readonly initialOrderRatio: number;
     readonly isolated: boolean;
+    readonly reEntryCount: number;
+    readonly status: StatusEnum;
+    readonly closeReason: string;
 }

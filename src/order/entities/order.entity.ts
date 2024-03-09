@@ -61,6 +61,10 @@ export class Order extends Document {
 
   @Prop({ type: String, })
   closeReason: string;
+
+  @Prop({ type: Number, default: 0 })
+  reEntryCount: number;
+
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

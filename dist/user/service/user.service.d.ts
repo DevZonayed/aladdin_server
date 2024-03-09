@@ -37,9 +37,9 @@ import { User } from '../entities/user.entity';
 export declare class UserService {
     private readonly userModel;
     private cacheManager;
-    private jwtService;
     private readonly binanceService;
-    constructor(userModel: Model<User>, cacheManager: Cache, jwtService: JwtService, binanceService: BinanceService);
+    private jwtService;
+    constructor(userModel: Model<User>, cacheManager: Cache, binanceService: BinanceService, jwtService: JwtService);
     create(createUserDto: CreateUserDto): Promise<void>;
     createSystemAdministrator(createSystemAdministratorDto: CreateSystemAdministratorDto): Promise<{
         statusCode: HttpStatus;

@@ -1,5 +1,5 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { UserRole } from 'src/common/enum';
 import { UserService } from 'src/user/service/user.service';
 import { MailNotificationTypeEnum } from '../enum/mail.type.enum';
@@ -9,7 +9,8 @@ import { notificationErrorTemplate, notificationExitingTemplate, notificationInf
 export class NotificationService {
     constructor(
         private readonly mailService: MailerService,
-        private readonly userService: UserService,
+        @Inject(forwardRef(() => UserService)) private readonly userService: UserService,
+
     ) { }
 
     // Send notification to all admins
