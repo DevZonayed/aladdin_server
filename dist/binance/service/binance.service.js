@@ -320,8 +320,6 @@ let BinanceService = class BinanceService {
                 let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
                 let isMaxPositionIncludeOpen = Boolean(strategy?.maxPosition?.includeOpen) || false;
                 let openPositionCount = await this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
-                console.log(openPositionCount);
-                console.log(maxPositionLimit);
                 if (maxPositionLimit <= openPositionCount) {
                     throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`);
                 }
