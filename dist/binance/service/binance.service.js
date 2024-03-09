@@ -282,15 +282,19 @@ let BinanceService = class BinanceService {
                 side = side.toUpperCase();
                 signalType = signalType.toUpperCase();
                 type = type.toUpperCase();
+                let instance = isTestMode ? binanceTest : binance;
                 let newOrderType = strategy.newOrderType || "MARKET";
                 let partialOrderType = strategy.partialOrderType || "MARKET";
                 let isolated = strategy?.isolated || false;
+                let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
+                let isMaxPositionIncludeOpen = Boolean(strategy?.maxPosition?.includeOpen) || false;
                 if (!Object.values(BinanceEnum_1.SignalTypeEnum).includes(signalType)) {
                     throw new Error("Invalid Signal Type, Signal Type is " + signalType);
                 }
                 let binanceBalance = this.userService.getBinanceBalance(userId);
                 let prevOrder = this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, userId, orderDto.symbol, orderDto.side);
-                let [binanceBalanceRes, prevOrderRes] = await Promise.all([this.safePromiseBuild(binanceBalance), this.safePromiseBuild(prevOrder)]);
+                let openPositionCountPromise = this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
+                let [binanceBalanceRes, prevOrderRes, openPositionCount] = await Promise.all([this.safePromiseBuild(binanceBalance), this.safePromiseBuild(prevOrder), this.safePromiseBuild(openPositionCountPromise)]);
                 ;
                 if (!binanceBalanceRes.success || binanceBalanceRes?.result?.code) {
                     throw new Error("Binance Balance Fetch Failed " + binanceBalanceRes.error?.message || binanceBalanceRes?.result?.msg);
@@ -304,6 +308,12 @@ let BinanceService = class BinanceService {
                 else {
                     prevOrderRes = null;
                 }
+                if (openPositionCount.success) {
+                    openPositionCount = openPositionCount.result;
+                }
+                else {
+                    throw new Error("Open Position Count Fetch Failed " + openPositionCount.error?.message || openPositionCount?.result?.msg);
+                }
                 this.handleOrderBounced(prevOrderRes, signalType, strategy);
                 if (prevOrderRes) {
                     if (signalType === BinanceEnum_1.SignalTypeEnum.NEW) {
@@ -316,10 +326,6 @@ let BinanceService = class BinanceService {
                 else {
                     this.handleNoPreviousOrder(prevOrderRes, signalType, strategy);
                 }
-                let instance = isTestMode ? binanceTest : binance;
-                let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
-                let isMaxPositionIncludeOpen = Boolean(strategy?.maxPosition?.includeOpen) || false;
-                let openPositionCount = await this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
                 if (maxPositionLimit <= openPositionCount) {
                     throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`);
                 }
@@ -567,9 +573,10 @@ let BinanceService = class BinanceService {
             if (includeOpen) {
                 countPromises.push(this.getBinanceOpenOrderCount(binance));
             }
+            let startTime = Date.now();
             let results = await Promise.all(countPromises) || [];
-            console.log(results);
             orderCount = results.reduce((a, b) => a + b, 0) || 0;
+            console.log(`Total Time For Fatching open order count: ${Date.now() - startTime}`);
             return orderCount;
         }
         catch (err) {
@@ -624,6 +631,9 @@ let BinanceService = class BinanceService {
         }
     }
     handleOrderBounced(prevOrderRes, signalType, strategy) {
+        if (prevOrderRes && prevOrderRes.reEntryCount >= strategy.maxReEntry) {
+            throw new Error(`Signal Ignored for "${strategy.StrategyName}" strategy, because max re-entry count reached of this order.`);
+        }
         if (signalType === BinanceEnum_1.SignalTypeEnum.NEW && strategy.stopNewOrder) {
             throw new Error(`We have found ${signalType} signal in ${strategy.StrategyName} this strategy, but new orders are currently disabled.`);
         }
