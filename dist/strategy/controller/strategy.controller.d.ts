@@ -12,7 +12,7 @@ export declare class StrategyController {
         message: string;
         payload: any;
     } | {
-        successResults: PromiseSettledResult<any>[];
+        successResults: any;
         failedResults: PromiseSettledResult<any>[];
         message: string;
     }>;

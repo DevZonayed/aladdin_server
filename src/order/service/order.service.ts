@@ -3,7 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, ORDER_CREATE_FAILED, ORDER_CREATE_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
 import { SortBy } from 'src/common/enum/enum-sort-by';
-import { UpdateOrderDto } from '../dto/update-order.dto';
 import { Order } from '../entities/order.entity';
 import { StatusEnum } from '../enums/status.enum';
 
@@ -185,7 +184,7 @@ export class OrderService {
 
   async update(
     id: string,
-    updateOrderDto: UpdateOrderDto,
+    updateOrderDto: any,
   ) {
     try {
       const data = await this.OrderModel

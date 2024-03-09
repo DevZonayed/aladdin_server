@@ -73,7 +73,7 @@ export declare class StrategyService {
         message: string;
         payload: any;
     } | {
-        successResults: PromiseSettledResult<any>[];
+        successResults: any;
         failedResults: PromiseSettledResult<any>[];
         message: string;
     }>;

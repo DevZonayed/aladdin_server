@@ -18,7 +18,7 @@ export declare class BinanceService {
     checkBalance(apiKey: string, secretKey: string): Promise<any>;
     private safePromiseBuild;
     createStrategyOrders(strategy: Strategy, userCredentials: User[], OrderWebHookDto: OrderWebHookDto): Promise<{
-        successResults: PromiseSettledResult<any>[];
+        successResults: any;
         failedResults: PromiseSettledResult<any>[];
         message: string;
     }>;

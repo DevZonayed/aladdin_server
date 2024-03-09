@@ -105,12 +105,12 @@ export class BinanceService {
 
         const orderSavePromises = results.map(result => this.handleOrderResultProcessing(result));
         let persistOrderResults = await Promise.allSettled(orderSavePromises);
-        let successResults = persistOrderResults.filter(result => result.status == "fulfilled");
+        let successResults: any = persistOrderResults.filter(result => result.status == "fulfilled");
         let failedResults = persistOrderResults.filter(result => result.status == "rejected");
-
+        // console.log(failedResults)
         successResults.map((item, index) => {
             // Check if binance error is there
-            if (item.status == "fulfilled" && item.value?.payload) {
+            if (item.status == "fulfilled" && item.value?.payload?.msg) {
                 let failPayload = {
                     status: "rejected",
                     reason: {
@@ -123,7 +123,7 @@ export class BinanceService {
         })
 
 
-        let mailMessage = `<p>We received a ${signalType} signal in ${strategy.StrategyName}. </p>`;
+        let mailMessage = `<p>We received a ${signalType} signal in "${strategy.StrategyName}" strategy with "${orderDto.symbol}" symbol. </p>`;
 
         if (successResults.length == finalCredentials.length) {
             mailMessage += "<p>All accounts subscribed to it were successfully executed 😍</p>\n";
@@ -371,8 +371,9 @@ export class BinanceService {
                 let isMaxPositionIncludeOpen = Boolean(strategy?.maxPosition?.includeOpen) || false;
 
                 let openPositionCount = await this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
-
-                if (maxPositionLimit < openPositionCount) {
+                console.log(openPositionCount)
+                console.log(maxPositionLimit)
+                if (maxPositionLimit <= openPositionCount) {
                     throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`)
                 }
 
@@ -677,6 +678,7 @@ export class BinanceService {
                 countPromises.push(this.getBinanceOpenOrderCount(binance));
             }
             let results = await Promise.all(countPromises) || [];
+            console.log(results)
             orderCount = results.reduce((a, b) => a + b, 0) || 0;
             return orderCount;
         } catch (err) {
@@ -727,8 +729,8 @@ export class BinanceService {
     }
 
     private async updateOrderForReEntrySignal(prevOrderRes: any, strategy: Strategy) {
-        await this.orderService.update(prevOrderRes._id, { reEntryCount: prevOrderRes.reEntryCount ? prevOrderRes.reEntryCount + 1 : 0 });
-        if (prevOrderRes.reEntryCount >= (strategy.maxReEntry || 4)) {
+        await this.orderService.update(prevOrderRes._id, { $inc: { reEntryCount: 1 } });
+        if (+prevOrderRes.reEntryCount >= (+strategy.maxReEntry || 4)) {
             await this.strategyService.update(strategy._id, { stopNewOrder: true });
             throw new Error(`Max Re-Entry Count reached for ${strategy.StrategyName}`);
         }

@@ -25,7 +25,6 @@
 import { HttpStatus } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { SortBy } from 'src/common/enum/enum-sort-by';
-import { UpdateOrderDto } from '../dto/update-order.dto';
 import { Order } from '../entities/order.entity';
 export declare class OrderService {
     private readonly OrderModel;
@@ -54,7 +53,7 @@ export declare class OrderService {
         error: string;
         data?: undefined;
     }>;
-    update(id: string, updateOrderDto: UpdateOrderDto): Promise<{
+    update(id: string, updateOrderDto: any): Promise<{
         statusCode: HttpStatus;
         response: string;
         message: string;
