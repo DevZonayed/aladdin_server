@@ -760,6 +760,10 @@ export class BinanceService {
         if (!prevOrderRes && signalType === SignalTypeEnum.RE_ENTRY) {
             throw new Error(`We have found ${signalType} signal in ${strategy.StrategyName} this strategy, but new orders are currently disabled.`);
         }
+
+        if (!prevOrderRes && (signalType === SignalTypeEnum.CLOSE || signalType === SignalTypeEnum.PARTIAL_CLOSE)) {
+            throw new Error(`We have found ${signalType} signal in ${strategy.StrategyName} this strategy, but there is no open order to close on this strategy.`);
+        }
         return;
     }
 }
