@@ -314,7 +314,7 @@ let BinanceService = class BinanceService {
                 else {
                     throw new Error("Open Position Count Fetch Failed " + openPositionCount.error?.message || openPositionCount?.result?.msg);
                 }
-                this.handleOrderBounced(prevOrderRes, signalType, strategy);
+                this.handleOrderBounced(prevOrderRes, signalType, strategy, side);
                 if (prevOrderRes) {
                     if (signalType === BinanceEnum_1.SignalTypeEnum.NEW) {
                         await this.updateOrderForNewSignal(prevOrderRes);
@@ -630,7 +630,7 @@ let BinanceService = class BinanceService {
             throw new Error(`New ${signalType} found in ${strategy.StrategyName} this strategy But new order is stopped`);
         }
     }
-    handleOrderBounced(prevOrderRes, signalType, strategy) {
+    handleOrderBounced(prevOrderRes, signalType, strategy, side) {
         if (prevOrderRes && prevOrderRes.reEntryCount >= strategy.maxReEntry) {
             throw new Error(`Signal Ignored for "${strategy.StrategyName}" strategy, because max re-entry count reached of this order.`);
         }
@@ -642,6 +642,13 @@ let BinanceService = class BinanceService {
         }
         if (!prevOrderRes && (signalType === BinanceEnum_1.SignalTypeEnum.CLOSE || signalType === BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE)) {
             throw new Error(`We have found ${signalType} signal in ${strategy.StrategyName} this strategy, but there is no open order to close on this strategy.`);
+        }
+        let prefaredSignalType = strategy?.prefaredSignalType || "BOTH";
+        if (prefaredSignalType == "BOTH") {
+            return;
+        }
+        if (prefaredSignalType !== side) {
+            throw new Error(`We have found "${signalType}" signal in "${strategy.StrategyName}" this strategy in "${side}" this side, but this strategy Position prefarence is "${prefaredSignalType}".`);
         }
         return;
     }

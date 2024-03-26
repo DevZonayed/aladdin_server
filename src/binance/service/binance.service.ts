@@ -364,7 +364,7 @@ export class BinanceService {
                 }
 
                 // Manage Order Bounced
-                this.handleOrderBounced(prevOrderRes, (signalType as SignalTypeEnum), strategy);
+                this.handleOrderBounced(prevOrderRes, (signalType as SignalTypeEnum), strategy, side);
 
                 // If New then update the previous order
                 if (prevOrderRes) {
@@ -749,7 +749,7 @@ export class BinanceService {
         }
     }
 
-    private handleOrderBounced(prevOrderRes: Order, signalType: SignalTypeEnum, strategy: Strategy) {
+    private handleOrderBounced(prevOrderRes: Order, signalType: SignalTypeEnum, strategy: Strategy, side: string) {
 
         if (prevOrderRes && prevOrderRes.reEntryCount >= strategy.maxReEntry) {
             throw new Error(`Signal Ignored for "${strategy.StrategyName}" strategy, because max re-entry count reached of this order.`)
@@ -764,6 +764,18 @@ export class BinanceService {
         if (!prevOrderRes && (signalType === SignalTypeEnum.CLOSE || signalType === SignalTypeEnum.PARTIAL_CLOSE)) {
             throw new Error(`We have found ${signalType} signal in ${strategy.StrategyName} this strategy, but there is no open order to close on this strategy.`);
         }
+
+        // Prefared Signal type match
+        let prefaredSignalType = strategy?.prefaredSignalType || "BOTH"
+
+        if (prefaredSignalType == "BOTH") {
+            return;
+        }
+
+        if (prefaredSignalType !== side) {
+            throw new Error(`We have found "${signalType}" signal in "${strategy.StrategyName}" this strategy in "${side}" this side, but this strategy Position prefarence is "${prefaredSignalType}".`)
+        }
+
         return;
     }
 }

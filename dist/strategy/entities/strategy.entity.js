@@ -97,6 +97,10 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Strategy.prototype, "stopNewOrder", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: String, default: "BOTH", enum: ['BUY', 'SELL', 'BOTH'] }),
+    __metadata("design:type", String)
+], Strategy.prototype, "prefaredSignalType", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: Number, default: 3 }),
     __metadata("design:type", Number)
 ], Strategy.prototype, "maxReEntry", void 0);

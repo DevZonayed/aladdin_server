@@ -166,6 +166,16 @@ __decorate([
 ], CreateStrategyDto.prototype, "stopNewOrder", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
+        type: String,
+        description: 'What Signal type Do You Prefer for this strategy',
+        example: "BOTH",
+        default: "BOTH",
+        enum: ["LONG", "SHORT", "BOTH"]
+    }),
+    __metadata("design:type", String)
+], CreateStrategyDto.prototype, "prefaredSignalType", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
         type: max_position_interface_1.MaxPositionEntity,
         description: 'Maximum position limit of the strategy',
         example: {

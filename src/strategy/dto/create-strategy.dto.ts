@@ -141,6 +141,15 @@ export class CreateStrategyDto {
   readonly stopNewOrder: boolean;
 
   @ApiProperty({
+    type: String,
+    description: 'What Signal type Do You Prefer for this strategy',
+    example: "BOTH",
+    default: "BOTH",
+    enum: ["LONG", "SHORT", "BOTH"]
+  })
+  readonly prefaredSignalType: string;
+
+  @ApiProperty({
     type: MaxPositionEntity,
     description: 'Maximum position limit of the strategy',
     example: {

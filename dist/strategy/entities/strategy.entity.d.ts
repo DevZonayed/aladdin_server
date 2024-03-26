@@ -45,6 +45,7 @@ export declare class Strategy extends Document {
     isRunning: boolean;
     maxPosition: MaxPosition;
     stopNewOrder: boolean;
+    prefaredSignalType: string;
     maxReEntry: number;
     startAt: Date;
     createdBy: Types.ObjectId;
