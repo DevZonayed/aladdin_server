@@ -86,10 +86,22 @@ export class BinanceService {
             }
 
             let accauntOrderPromises = finalCredentials.map(async (credential) => {
-                return await this.generateFutureOrders(strategy, credential, OrderWebHookDto);
+                try {
+                    let result = await this.generateFutureOrders(strategy, credential, OrderWebHookDto);
+                    return {
+                        result,
+                        userId: credential._id
+                    }
+                } catch (err) {
+                    return {
+                        result: null,
+                        userId: credential._id,
+                        error: err.message
+                    }
+                }
             });
 
-            let binanceOrderResult = await Promise.allSettled(accauntOrderPromises);
+            let binanceOrderResult = await Promise.all(accauntOrderPromises);
 
             let saveResult = await this.persistOrderResults(binanceOrderResult, strategy, OrderWebHookDto, finalCredentials);
 
@@ -104,7 +116,7 @@ export class BinanceService {
     private async persistOrderResults(results: any, strategy: Strategy, orderDto: OrderWebHookDto, finalCredentials: any[]) {
         let signalType = orderDto.signalType.toUpperCase();
 
-        const orderSavePromises = results.map(result => this.handleOrderResultProcessing(result));
+        const orderSavePromises = results.map(result => this.handleOrderResultProcessing(result, strategy, orderDto));
         let persistOrderResults = await Promise.allSettled(orderSavePromises);
         let successResults: any = persistOrderResults.filter(result => result.status == "fulfilled");
         let failedResults = persistOrderResults.filter(result => result.status == "rejected");
@@ -157,31 +169,35 @@ export class BinanceService {
 
     }
 
-    private async handleOrderResultProcessing(result: any) {
+    private async handleOrderResultProcessing(response: any, strategy: Strategy, orderDto: OrderWebHookDto) {
         try {
 
-            if (result.status == "rejected") {
-                throw new Error(result.reason.message)
-            } else if (result.status == "fulfilled") {
-                result = result.value;
+            const existOrder = await this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, response.userId, orderDto.symbol, orderDto.side);
+            // For Order Close. Close The order in database first 
+            if (response?.result == null && orderDto.signalType == "CLOSE" && existOrder.status) {
+                await this.forceCloseOrder(existOrder.data)
+            }
+
+            let result: any;
+            if (response?.result == null) {
+                throw new Error(response?.error?.message)
+            } else if (response?.result !== null) {
+                result = response.result;
             } else {
                 throw new Error("Order Promise Status Unknown.")
             }
 
             const {
                 userId,
-                orderDto,
                 success,
                 message,
                 order,
                 ratio,
-                strategy
             } = this.retrieveDataFromOrderResult(result);
 
             if (!success) {
                 throw new Error(message);
             }
-            const existOrder = await this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, userId, orderDto.symbol, orderDto.side);
 
             if (existOrder.status) {
                 return this.updateExistingOrder(existOrder, orderDto, order);
@@ -285,6 +301,19 @@ export class BinanceService {
         return updatePayload;
     }
 
+    private async forceCloseOrder(order: Order) {
+        try {
+            let payload = {
+                status: StatusEnum.CLOSED,
+                closeReason: "From Binance the order i am unable to close so i have close it forcefully for order safety"
+            }
+            await this.orderService.update(order._id, payload)
+
+        } catch (err) {
+            throw new Error(err.message)
+        }
+    }
+
     private computeClosedOrderQuantity(order, orderDto) {
         if (Array.isArray(order)) {
             return order.reduce((sum, item) => sum + Number(item?.origQty || 0), 0);
@@ -320,16 +349,13 @@ export class BinanceService {
                 side = side.toUpperCase();
                 signalType = signalType.toUpperCase();
                 type = type.toUpperCase();
+                leverage = (strategy.tradeMaxLeverage || 10) <= +leverage ? (strategy.tradeMaxLeverage || 10) : leverage
                 // Settings
                 let instance = isTestMode ? binanceTest : binance;
                 let newOrderType = strategy.newOrderType || "MARKET";
                 let partialOrderType = strategy.partialOrderType || "MARKET";
                 let isolated = strategy?.isolated || false;
-                let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
                 let isMaxPositionIncludeOpen = Boolean(strategy?.maxPosition?.includeOpen) || false;
-
-
-
 
                 if (!Object.values(SignalTypeEnum).includes(signalType as any)) {
                     throw new Error("Invalid Signal Type, Signal Type is " + signalType);
@@ -342,7 +368,7 @@ export class BinanceService {
                 let openPositionCountPromise = this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
 
 
-                let [binanceBalanceRes, prevOrderRes, openPositionCount] = await Promise.all([this.safePromiseBuild(binanceBalance), this.safePromiseBuild(prevOrder), this.safePromiseBuild(openPositionCountPromise)]);;
+                let [binanceBalanceRes, prevOrderRes, openPositionCount] = await Promise.all([this.safePromiseBuild(binanceBalance), this.safePromiseBuild(prevOrder), this.safePromiseBuild(openPositionCountPromise)]);
 
 
                 if (!binanceBalanceRes.success || binanceBalanceRes?.result?.code) {
@@ -364,7 +390,7 @@ export class BinanceService {
                 }
 
                 // Manage Order Bounced
-                this.handleOrderBounced(prevOrderRes, (signalType as SignalTypeEnum), strategy, side);
+                this.handleOrderBounced(prevOrderRes, (signalType as SignalTypeEnum), strategy, side, openPositionCount);
 
                 // If New then update the previous order
                 if (prevOrderRes) {
@@ -378,11 +404,6 @@ export class BinanceService {
                 }
 
 
-
-                // check max order limit
-                if (maxPositionLimit <= openPositionCount) {
-                    throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`)
-                }
                 // Calculate Trade Details
                 let rootTradeAmount = Number(price) * Number(quantity);
                 let rootTradeCapital = Number(strategy.capital);
@@ -749,7 +770,8 @@ export class BinanceService {
         }
     }
 
-    private handleOrderBounced(prevOrderRes: Order, signalType: SignalTypeEnum, strategy: Strategy, side: string) {
+    private handleOrderBounced(prevOrderRes: Order, signalType: SignalTypeEnum, strategy: Strategy, side: string, openPositionCount: number) {
+        let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
 
         if (prevOrderRes && prevOrderRes.reEntryCount >= strategy.maxReEntry) {
             throw new Error(`Signal Ignored for "${strategy.StrategyName}" strategy, because max re-entry count reached of this order.`)
@@ -763,6 +785,11 @@ export class BinanceService {
 
         if (!prevOrderRes && (signalType === SignalTypeEnum.CLOSE || signalType === SignalTypeEnum.PARTIAL_CLOSE)) {
             throw new Error(`We have found ${signalType} signal in ${strategy.StrategyName} this strategy, but there is no open order to close on this strategy.`);
+        }
+
+        // check max order limit
+        if (maxPositionLimit <= openPositionCount && signalType == SignalTypeEnum.NEW) {
+            throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`)
         }
 
         // Prefared Signal type match

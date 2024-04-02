@@ -81,9 +81,22 @@ let BinanceService = class BinanceService {
                 throw new Error("No valid credentials found");
             }
             let accauntOrderPromises = finalCredentials.map(async (credential) => {
-                return await this.generateFutureOrders(strategy, credential, OrderWebHookDto);
+                try {
+                    let result = await this.generateFutureOrders(strategy, credential, OrderWebHookDto);
+                    return {
+                        result,
+                        userId: credential._id
+                    };
+                }
+                catch (err) {
+                    return {
+                        result: null,
+                        userId: credential._id,
+                        error: err.message
+                    };
+                }
             });
-            let binanceOrderResult = await Promise.allSettled(accauntOrderPromises);
+            let binanceOrderResult = await Promise.all(accauntOrderPromises);
             let saveResult = await this.persistOrderResults(binanceOrderResult, strategy, OrderWebHookDto, finalCredentials);
             return saveResult;
         }
@@ -93,7 +106,7 @@ let BinanceService = class BinanceService {
     }
     async persistOrderResults(results, strategy, orderDto, finalCredentials) {
         let signalType = orderDto.signalType.toUpperCase();
-        const orderSavePromises = results.map(result => this.handleOrderResultProcessing(result));
+        const orderSavePromises = results.map(result => this.handleOrderResultProcessing(result, strategy, orderDto));
         let persistOrderResults = await Promise.allSettled(orderSavePromises);
         let successResults = persistOrderResults.filter(result => result.status == "fulfilled");
         let failedResults = persistOrderResults.filter(result => result.status == "rejected");
@@ -137,22 +150,26 @@ let BinanceService = class BinanceService {
             message: mailMessage
         };
     }
-    async handleOrderResultProcessing(result) {
+    async handleOrderResultProcessing(response, strategy, orderDto) {
         try {
-            if (result.status == "rejected") {
-                throw new Error(result.reason.message);
+            const existOrder = await this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, response.userId, orderDto.symbol, orderDto.side);
+            if (response?.result == null && orderDto.signalType == "CLOSE" && existOrder.status) {
+                await this.forceCloseOrder(existOrder.data);
             }
-            else if (result.status == "fulfilled") {
-                result = result.value;
+            let result;
+            if (response?.result == null) {
+                throw new Error(response?.error?.message);
+            }
+            else if (response?.result !== null) {
+                result = response.result;
             }
             else {
                 throw new Error("Order Promise Status Unknown.");
             }
-            const { userId, orderDto, success, message, order, ratio, strategy } = this.retrieveDataFromOrderResult(result);
+            const { userId, success, message, order, ratio, } = this.retrieveDataFromOrderResult(result);
             if (!success) {
                 throw new Error(message);
             }
-            const existOrder = await this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, userId, orderDto.symbol, orderDto.side);
             if (existOrder.status) {
                 return this.updateExistingOrder(existOrder, orderDto, order);
             }
@@ -251,6 +268,18 @@ let BinanceService = class BinanceService {
         }
         return updatePayload;
     }
+    async forceCloseOrder(order) {
+        try {
+            let payload = {
+                status: status_enum_1.StatusEnum.CLOSED,
+                closeReason: "From Binance the order i am unable to close so i have close it forcefully for order safety"
+            };
+            await this.orderService.update(order._id, payload);
+        }
+        catch (err) {
+            throw new Error(err.message);
+        }
+    }
     computeClosedOrderQuantity(order, orderDto) {
         if (Array.isArray(order)) {
             return order.reduce((sum, item) => sum + Number(item?.origQty || 0), 0);
@@ -282,11 +311,11 @@ let BinanceService = class BinanceService {
                 side = side.toUpperCase();
                 signalType = signalType.toUpperCase();
                 type = type.toUpperCase();
+                leverage = (strategy.tradeMaxLeverage || 10) <= +leverage ? (strategy.tradeMaxLeverage || 10) : leverage;
                 let instance = isTestMode ? binanceTest : binance;
                 let newOrderType = strategy.newOrderType || "MARKET";
                 let partialOrderType = strategy.partialOrderType || "MARKET";
                 let isolated = strategy?.isolated || false;
-                let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
                 let isMaxPositionIncludeOpen = Boolean(strategy?.maxPosition?.includeOpen) || false;
                 if (!Object.values(BinanceEnum_1.SignalTypeEnum).includes(signalType)) {
                     throw new Error("Invalid Signal Type, Signal Type is " + signalType);
@@ -295,7 +324,6 @@ let BinanceService = class BinanceService {
                 let prevOrder = this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, userId, orderDto.symbol, orderDto.side);
                 let openPositionCountPromise = this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
                 let [binanceBalanceRes, prevOrderRes, openPositionCount] = await Promise.all([this.safePromiseBuild(binanceBalance), this.safePromiseBuild(prevOrder), this.safePromiseBuild(openPositionCountPromise)]);
-                ;
                 if (!binanceBalanceRes.success || binanceBalanceRes?.result?.code) {
                     throw new Error("Binance Balance Fetch Failed " + binanceBalanceRes.error?.message || binanceBalanceRes?.result?.msg);
                 }
@@ -314,7 +342,7 @@ let BinanceService = class BinanceService {
                 else {
                     throw new Error("Open Position Count Fetch Failed " + openPositionCount.error?.message || openPositionCount?.result?.msg);
                 }
-                this.handleOrderBounced(prevOrderRes, signalType, strategy, side);
+                this.handleOrderBounced(prevOrderRes, signalType, strategy, side, openPositionCount);
                 if (prevOrderRes) {
                     if (signalType === BinanceEnum_1.SignalTypeEnum.NEW) {
                         await this.updateOrderForNewSignal(prevOrderRes);
@@ -325,9 +353,6 @@ let BinanceService = class BinanceService {
                 }
                 else {
                     this.handleNoPreviousOrder(prevOrderRes, signalType, strategy);
-                }
-                if (maxPositionLimit <= openPositionCount) {
-                    throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`);
                 }
                 let rootTradeAmount = Number(price) * Number(quantity);
                 let rootTradeCapital = Number(strategy.capital);
@@ -630,7 +655,8 @@ let BinanceService = class BinanceService {
             throw new Error(`New ${signalType} found in ${strategy.StrategyName} this strategy But new order is stopped`);
         }
     }
-    handleOrderBounced(prevOrderRes, signalType, strategy, side) {
+    handleOrderBounced(prevOrderRes, signalType, strategy, side, openPositionCount) {
+        let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
         if (prevOrderRes && prevOrderRes.reEntryCount >= strategy.maxReEntry) {
             throw new Error(`Signal Ignored for "${strategy.StrategyName}" strategy, because max re-entry count reached of this order.`);
         }
@@ -642,6 +668,9 @@ let BinanceService = class BinanceService {
         }
         if (!prevOrderRes && (signalType === BinanceEnum_1.SignalTypeEnum.CLOSE || signalType === BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE)) {
             throw new Error(`We have found ${signalType} signal in ${strategy.StrategyName} this strategy, but there is no open order to close on this strategy.`);
+        }
+        if (maxPositionLimit <= openPositionCount && signalType == BinanceEnum_1.SignalTypeEnum.NEW) {
+            throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`);
         }
         let prefaredSignalType = strategy?.prefaredSignalType || "BOTH";
         if (prefaredSignalType == "BOTH") {

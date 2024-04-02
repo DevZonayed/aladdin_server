@@ -28,6 +28,7 @@ export declare class BinanceService {
     private buildNewOrderPayload;
     private updateExistingOrder;
     private computeOrderUpdateDetails;
+    private forceCloseOrder;
     private computeClosedOrderQuantity;
     private computeOrderTotalQuantity;
     private generateFutureOrders;
