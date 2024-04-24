@@ -232,35 +232,44 @@ export class UserService {
 
 
   async login(userLoginDto: UserLoginDto) {
-    const userExist = await this.checkUserByEmail(userLoginDto.email);
-    if (userExist.length > 0) {
-      const matchPassword = await this.compareHashPassword(
-        userLoginDto.password,
-        userExist[0].password,
-      );
-
-      if (matchPassword) {
-        const { access_token, data } = await this.getAccessToken(userExist[0]);
-
-        return createApiResponse(
-          HttpStatus.OK,
-          SUCCESS_RESPONSE,
-          USER_LOGIN_SUCCESSFUL,
-          { access_token, data }, // Send user details in the payload
+    try {
+      const userExist = await this.checkUserByEmail(userLoginDto.email);
+      if (userExist.length > 0) {
+        const matchPassword = await this.compareHashPassword(
+          userLoginDto.password,
+          userExist[0].password,
         );
-      } else {
-        return createApiResponse(
-          HttpStatus.UNAUTHORIZED,
-          FAIELD_RESPONSE,
-          INVALID_PASSWORD,
-        );
+
+        if (matchPassword) {
+          const { access_token, data } = await this.getAccessToken(userExist[0]);
+
+          return createApiResponse(
+            HttpStatus.OK,
+            SUCCESS_RESPONSE,
+            USER_LOGIN_SUCCESSFUL,
+            { access_token, data }, // Send user details in the payload
+          );
+        } else {
+          return createApiResponse(
+            HttpStatus.UNAUTHORIZED,
+            FAIELD_RESPONSE,
+            INVALID_PASSWORD,
+          );
+        }
       }
+      return createApiResponse(
+        HttpStatus.NOT_FOUND,
+        FAIELD_RESPONSE,
+        USER_MAIL_NOT_EXIST,
+      );
+    } catch (err) {
+      console.error(err)
+      return createApiResponse(
+        HttpStatus.BAD_REQUEST,
+        FAIELD_RESPONSE,
+        err.emessage
+      )
     }
-    return createApiResponse(
-      HttpStatus.NOT_FOUND,
-      FAIELD_RESPONSE,
-      USER_MAIL_NOT_EXIST,
-    );
   }
 
   async getBinanceBalance(id: Types.ObjectId | string, apiKey: string = null, apiSecret: string = null): Promise<{ balance: number | string, isTestMode: boolean }> {
@@ -442,6 +451,8 @@ export class UserService {
   }
 
   async checkUserByEmail(email) {
+    let allUsers = await this.userModel.find()
+    console.log(allUsers)
     return await this.userModel.find({ email });
   }
   async checkUserByRoles(roles) {
@@ -497,7 +508,6 @@ export class UserService {
       user.email = createSystemAdministrator.email;
       user.password = encryptedPassword;
       user.roles = createSystemAdministrator.roles;
-
       const response = await user.save();
       if (response) {
         const { data, access_token } = await this.getAccessToken(response);
@@ -509,6 +519,7 @@ export class UserService {
         );
       }
     } catch (error) {
+      console.error(error)
       return createApiResponse(
         HttpStatus.INTERNAL_SERVER_ERROR,
         FAIELD_RESPONSE,

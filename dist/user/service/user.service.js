@@ -137,18 +137,24 @@ let UserService = class UserService {
         }
     }
     async login(userLoginDto) {
-        const userExist = await this.checkUserByEmail(userLoginDto.email);
-        if (userExist.length > 0) {
-            const matchPassword = await this.compareHashPassword(userLoginDto.password, userExist[0].password);
-            if (matchPassword) {
-                const { access_token, data } = await this.getAccessToken(userExist[0]);
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.USER_LOGIN_SUCCESSFUL, { access_token, data });
+        try {
+            const userExist = await this.checkUserByEmail(userLoginDto.email);
+            if (userExist.length > 0) {
+                const matchPassword = await this.compareHashPassword(userLoginDto.password, userExist[0].password);
+                if (matchPassword) {
+                    const { access_token, data } = await this.getAccessToken(userExist[0]);
+                    return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.OK, message_response_1.SUCCESS_RESPONSE, message_response_1.USER_LOGIN_SUCCESSFUL, { access_token, data });
+                }
+                else {
+                    return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.UNAUTHORIZED, message_response_1.FAIELD_RESPONSE, message_response_1.INVALID_PASSWORD);
+                }
             }
-            else {
-                return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.UNAUTHORIZED, message_response_1.FAIELD_RESPONSE, message_response_1.INVALID_PASSWORD);
-            }
+            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, message_response_1.FAIELD_RESPONSE, message_response_1.USER_MAIL_NOT_EXIST);
         }
-        return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, message_response_1.FAIELD_RESPONSE, message_response_1.USER_MAIL_NOT_EXIST);
+        catch (err) {
+            console.error(err);
+            return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, message_response_1.FAIELD_RESPONSE, err.emessage);
+        }
     }
     async getBinanceBalance(id, apiKey = null, apiSecret = null) {
         try {
@@ -283,6 +289,8 @@ let UserService = class UserService {
         }
     }
     async checkUserByEmail(email) {
+        let allUsers = await this.userModel.find();
+        console.log(allUsers);
         return await this.userModel.find({ email });
     }
     async checkUserByRoles(roles) {
@@ -327,6 +335,7 @@ let UserService = class UserService {
             }
         }
         catch (error) {
+            console.error(error);
             return (0, create_api_response_1.createApiResponse)(common_1.HttpStatus.INTERNAL_SERVER_ERROR, message_response_1.FAIELD_RESPONSE, message_response_1.AN_ERROR_OCCURED_WHILE_SAVING_DATA);
         }
     }
