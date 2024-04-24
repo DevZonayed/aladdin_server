@@ -119,6 +119,22 @@ export class CreateStrategyDto {
   readonly maxReEntry: number;
 
   @ApiProperty({
+    type: Number,
+    description: 'Maximum Short Positions Allowed to this strategy',
+    example: 4,
+    required: true
+  })
+  readonly maxLongPosition: number;
+
+  @ApiProperty({
+    type: Number,
+    description: 'Maximum Long Positions Allowed to this strategy',
+    example: 4,
+    required: true
+  })
+  readonly maxShortPosition: number;
+
+  @ApiProperty({
     type: Boolean,
     description: 'Is this strategy work with re entry',
     example: true

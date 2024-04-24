@@ -106,8 +106,8 @@ export declare class UserService {
     checkUserByRoles(roles: any): Promise<(import("mongoose").Document<unknown, {}, User> & User & {
         _id: Types.ObjectId;
     })[]>;
-    hashPassword(password: any): Promise<string>;
-    compareHashPassword(password: any, userPassword: any): Promise<boolean>;
+    hashPassword(password: any): Promise<any>;
+    compareHashPassword(password: any, userPassword: any): Promise<any>;
     getAccessToken(response: any): Promise<{
         data: {
             sub: any;

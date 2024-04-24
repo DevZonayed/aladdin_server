@@ -2,7 +2,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { HttpStatus, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt-nodejs';
 import { Cache } from 'cache-manager';
 import { Model, Types } from 'mongoose';
 import { BinanceService } from 'src/binance/service/binance.service';

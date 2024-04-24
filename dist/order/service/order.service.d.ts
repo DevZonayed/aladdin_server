@@ -36,6 +36,9 @@ export declare class OrderService {
         payload: any;
     }>;
     findAll(page: number, limit: number, order: string, sort: SortBy, search: string, startDate: Date, endDate: Date): Promise<any>;
+    findAllOpenOredrSymbolAndSide(): Promise<(import("mongoose").Document<unknown, {}, Order> & Order & {
+        _id: import("mongoose").Types.ObjectId;
+    })[]>;
     findOne(id: string): Promise<{
         statusCode: HttpStatus;
         response: string;

@@ -323,6 +323,7 @@ let BinanceService = class BinanceService {
                 let binanceBalance = this.userService.getBinanceBalance(userId);
                 let prevOrder = this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, userId, orderDto.symbol, orderDto.side);
                 let openPositionCountPromise = this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
+                let allOpenOrder = await this.orderService.findAllOpenOredrSymbolAndSide();
                 let [binanceBalanceRes, prevOrderRes, openPositionCount] = await Promise.all([this.safePromiseBuild(binanceBalance), this.safePromiseBuild(prevOrder), this.safePromiseBuild(openPositionCountPromise)]);
                 if (!binanceBalanceRes.success || binanceBalanceRes?.result?.code) {
                     throw new Error("Binance Balance Fetch Failed " + binanceBalanceRes.error?.message || binanceBalanceRes?.result?.msg);
@@ -342,7 +343,7 @@ let BinanceService = class BinanceService {
                 else {
                     throw new Error("Open Position Count Fetch Failed " + openPositionCount.error?.message || openPositionCount?.result?.msg);
                 }
-                this.handleOrderBounced(prevOrderRes, signalType, strategy, side, openPositionCount);
+                this.handleOrderBounced(prevOrderRes, signalType, strategy, side, openPositionCount, allOpenOrder, symbol);
                 if (prevOrderRes) {
                     if (signalType === BinanceEnum_1.SignalTypeEnum.NEW) {
                         await this.updateOrderForNewSignal(prevOrderRes);
@@ -655,7 +656,7 @@ let BinanceService = class BinanceService {
             throw new Error(`New ${signalType} found in ${strategy.StrategyName} this strategy But new order is stopped`);
         }
     }
-    handleOrderBounced(prevOrderRes, signalType, strategy, side, openPositionCount) {
+    handleOrderBounced(prevOrderRes, signalType, strategy, side, openPositionCount, allOpenOrder, symbol) {
         let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
         if (prevOrderRes && prevOrderRes.reEntryCount >= strategy.maxReEntry) {
             throw new Error(`Signal Ignored for "${strategy.StrategyName}" strategy, because max re-entry count reached of this order.`);
@@ -671,6 +672,21 @@ let BinanceService = class BinanceService {
         }
         if (maxPositionLimit <= openPositionCount && signalType == BinanceEnum_1.SignalTypeEnum.NEW) {
             throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`);
+        }
+        if (allOpenOrder.length) {
+            if (allOpenOrder.some(o => o.symbol === symbol && o.side === side && o.strategyId !== strategy._id)) {
+                throw new Error(`Order with symbol ${symbol} and side ${side} is already open in another strategy`);
+            }
+            let maxLongSideOrder = strategy?.maxLongPosition || 2;
+            let maxShortPosition = strategy?.maxShortPosition || 2;
+            let strategyLongOpenOrder = allOpenOrder.filter(o => o.side == "LONG" && o.strategyId === strategy._id);
+            let strategySHortOpenOrder = allOpenOrder.filter(o => o.side == "SHORT" && o.strategyId === strategy._id);
+            if (side == "LONG" && strategyLongOpenOrder.length >= maxLongSideOrder) {
+                throw new Error(`Max Long Position Limit Exceeded, Max Long Position Limit is ${maxLongSideOrder} For this strategy : ${strategy?.StrategyName}`);
+            }
+            else if (side == "SHORT" && strategySHortOpenOrder.length >= maxShortPosition) {
+                throw new Error(`Max Short Position Limit Exceeded, Max Short Position Limit is ${maxShortPosition} For this strategy : ${strategy?.StrategyName}`);
+            }
         }
         let prefaredSignalType = strategy?.prefaredSignalType || "BOTH";
         if (prefaredSignalType == "BOTH") {

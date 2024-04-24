@@ -141,6 +141,24 @@ __decorate([
 ], CreateStrategyDto.prototype, "maxReEntry", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
+        type: Number,
+        description: 'Maximum Short Positions Allowed to this strategy',
+        example: 4,
+        required: true
+    }),
+    __metadata("design:type", Number)
+], CreateStrategyDto.prototype, "maxLongPosition", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: Number,
+        description: 'Maximum Long Positions Allowed to this strategy',
+        example: 4,
+        required: true
+    }),
+    __metadata("design:type", Number)
+], CreateStrategyDto.prototype, "maxShortPosition", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
         type: Boolean,
         description: 'Is this strategy work with re entry',
         example: true

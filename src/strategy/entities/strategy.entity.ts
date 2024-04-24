@@ -64,6 +64,13 @@ export class Strategy extends Document {
   @Prop({ type: Boolean, default: false })
   stopNewOrder: boolean;
 
+
+  @Prop({ type: Number, default: 2 })
+  maxLongPosition: number;
+
+  @Prop({ type: Number, default: 2 })
+  maxShortPosition: number;
+
   @Prop({ type: String, default: "BOTH", enum: ['BUY', 'SELL', 'BOTH'] })
   prefaredSignalType: string;
 

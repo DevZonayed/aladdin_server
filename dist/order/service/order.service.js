@@ -92,6 +92,9 @@ let OrderService = class OrderService {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
+    async findAllOpenOredrSymbolAndSide() {
+        return await this.OrderModel.find({ status: "OPEN" }).exec();
+    }
     async findOne(id) {
         try {
             const data = await this.OrderModel.findById(id).exec();

@@ -14,6 +14,8 @@ export declare class CreateStrategyDto {
     readonly tradeMaxLeverage: number;
     readonly tradeMaxAmountPercentage: number;
     readonly maxReEntry: number;
+    readonly maxLongPosition: number;
+    readonly maxShortPosition: number;
     readonly reEntry: boolean;
     readonly stopLoss: boolean;
     readonly stopNewOrder: boolean;

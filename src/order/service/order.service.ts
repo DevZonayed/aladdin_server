@@ -132,6 +132,10 @@ export class OrderService {
     }
   }
 
+  async findAllOpenOredrSymbolAndSide() {
+    return await this.OrderModel.find({ status: "OPEN" }).exec();
+  }
+
   async findOne(id: string) {
     try {
       const data = await this.OrderModel.findById(id).exec();

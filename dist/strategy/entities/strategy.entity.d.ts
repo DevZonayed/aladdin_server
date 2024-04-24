@@ -45,6 +45,8 @@ export declare class Strategy extends Document {
     isRunning: boolean;
     maxPosition: MaxPosition;
     stopNewOrder: boolean;
+    maxLongPosition: number;
+    maxShortPosition: number;
     prefaredSignalType: string;
     maxReEntry: number;
     startAt: Date;

@@ -357,6 +357,7 @@ export class BinanceService {
                 let isolated = strategy?.isolated || false;
                 let isMaxPositionIncludeOpen = Boolean(strategy?.maxPosition?.includeOpen) || false;
 
+
                 if (!Object.values(SignalTypeEnum).includes(signalType as any)) {
                     throw new Error("Invalid Signal Type, Signal Type is " + signalType);
                 }
@@ -366,6 +367,7 @@ export class BinanceService {
                 let binanceBalance = this.userService.getBinanceBalance(userId);
                 let prevOrder = this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, userId, orderDto.symbol, orderDto.side);
                 let openPositionCountPromise = this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
+                let allOpenOrder = await this.orderService.findAllOpenOredrSymbolAndSide()
 
 
                 let [binanceBalanceRes, prevOrderRes, openPositionCount] = await Promise.all([this.safePromiseBuild(binanceBalance), this.safePromiseBuild(prevOrder), this.safePromiseBuild(openPositionCountPromise)]);
@@ -389,8 +391,14 @@ export class BinanceService {
                     throw new Error("Open Position Count Fetch Failed " + openPositionCount.error?.message || openPositionCount?.result?.msg);
                 }
 
+
+                // Validate if the same order is open in diffrent strategy or not
+
+
+
+
                 // Manage Order Bounced
-                this.handleOrderBounced(prevOrderRes, (signalType as SignalTypeEnum), strategy, side, openPositionCount);
+                this.handleOrderBounced(prevOrderRes, (signalType as SignalTypeEnum), strategy, side, openPositionCount, allOpenOrder, symbol,);
 
                 // If New then update the previous order
                 if (prevOrderRes) {
@@ -770,7 +778,7 @@ export class BinanceService {
         }
     }
 
-    private handleOrderBounced(prevOrderRes: Order, signalType: SignalTypeEnum, strategy: Strategy, side: string, openPositionCount: number) {
+    private handleOrderBounced(prevOrderRes: Order, signalType: SignalTypeEnum, strategy: Strategy, side: string, openPositionCount: number, allOpenOrder: Order[], symbol: string) {
         let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
 
         if (prevOrderRes && prevOrderRes.reEntryCount >= strategy.maxReEntry) {
@@ -792,6 +800,29 @@ export class BinanceService {
             throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`)
         }
 
+
+
+        if (allOpenOrder.length) {
+            // Is the same direction and symbol order is already open in another strategy ?
+            if (allOpenOrder.some(o => o.symbol === symbol && o.side === side && o.strategyId !== strategy._id)) {
+                throw new Error(`Order with symbol ${symbol} and side ${side} is already open in another strategy`);
+            }
+
+            let maxLongSideOrder = strategy?.maxLongPosition || 2;
+            let maxShortPosition = strategy?.maxShortPosition || 2;
+
+            let strategyLongOpenOrder = allOpenOrder.filter(o => o.side == "LONG" && o.strategyId === strategy._id);
+            let strategySHortOpenOrder = allOpenOrder.filter(o => o.side == "SHORT" && o.strategyId === strategy._id);
+
+            if (side == "LONG" && strategyLongOpenOrder.length >= maxLongSideOrder) {
+                throw new Error(`Max Long Position Limit Exceeded, Max Long Position Limit is ${maxLongSideOrder} For this strategy : ${strategy?.StrategyName}`)
+            } else if (side == "SHORT" && strategySHortOpenOrder.length >= maxShortPosition) {
+                throw new Error(`Max Short Position Limit Exceeded, Max Short Position Limit is ${maxShortPosition} For this strategy : ${strategy?.StrategyName}`)
+            }
+
+        }
+
+
         // Prefared Signal type match
         let prefaredSignalType = strategy?.prefaredSignalType || "BOTH"
 
@@ -802,6 +833,7 @@ export class BinanceService {
         if (prefaredSignalType !== side) {
             throw new Error(`We have found "${signalType}" signal in "${strategy.StrategyName}" this strategy in "${side}" this side, but this strategy Position prefarence is "${prefaredSignalType}".`)
         }
+
 
         return;
     }
