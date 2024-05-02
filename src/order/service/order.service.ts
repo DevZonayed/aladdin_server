@@ -159,6 +159,32 @@ export class OrderService {
     }
   }
 
+
+  async findAllOpenOrders(strategyId: string, userId: string) {
+    try {
+
+      const data = await this.OrderModel.find({ status: StatusEnum.OPEN, strategyId, userId }).exec();
+      if (data) {
+        return {
+          status: true,
+          data,
+        }
+      } else {
+        return {
+          status: false,
+          data,
+        }
+      }
+
+    } catch (error) {
+      return {
+        status: false,
+        error: "Failed to find open order" + error.message,
+      }
+    }
+  }
+
+
   async findOpenOrder(strategyId: string, copyOrderId: string, userId: string, symbol: string, side: string) {
     try {
       const data = await this.OrderModel.findOne({ status: StatusEnum.OPEN, strategyId, copyOrderId, userId, side, symbol }).exec();

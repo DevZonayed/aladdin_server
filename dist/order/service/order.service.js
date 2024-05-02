@@ -106,6 +106,29 @@ let OrderService = class OrderService {
             return (0, constants_1.createApiResponse)(common_1.HttpStatus.BAD_REQUEST, constants_1.FAIELD_RESPONSE, constants_1.SOMETHING_WENT_WRONG, error);
         }
     }
+    async findAllOpenOrders(strategyId, userId) {
+        try {
+            const data = await this.OrderModel.find({ status: status_enum_1.StatusEnum.OPEN, strategyId, userId }).exec();
+            if (data) {
+                return {
+                    status: true,
+                    data,
+                };
+            }
+            else {
+                return {
+                    status: false,
+                    data,
+                };
+            }
+        }
+        catch (error) {
+            return {
+                status: false,
+                error: "Failed to find open order" + error.message,
+            };
+        }
+    }
     async findOpenOrder(strategyId, copyOrderId, userId, symbol, side) {
         try {
             const data = await this.OrderModel.findOne({ status: status_enum_1.StatusEnum.OPEN, strategyId, copyOrderId, userId, side, symbol }).exec();

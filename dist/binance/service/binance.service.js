@@ -18,6 +18,7 @@ const common_1 = require("@nestjs/common");
 const constants_1 = require("../../common/constants");
 const mail_type_enum_1 = require("../../notification/mail/enum/mail.type.enum");
 const notification_service_1 = require("../../notification/mail/service/notification.service");
+const OrderSide_enum_1 = require("../../order/enums/OrderSide.enum");
 const createdBy_enum_1 = require("../../order/enums/createdBy.enum");
 const status_enum_1 = require("../../order/enums/status.enum");
 const order_service_1 = require("../../order/service/order.service");
@@ -305,27 +306,40 @@ let BinanceService = class BinanceService {
             try {
                 let { symbol, side, type, quantity, price, leverage, signalType } = orderDto;
                 if (!symbol || !side || !type || !quantity || !price || !signalType) {
-                    throw new Error("Missing required parameters");
+                    throw new Error('Missing required parameters');
                 }
                 symbol = symbol.toUpperCase();
                 side = side.toUpperCase();
                 signalType = signalType.toUpperCase();
                 type = type.toUpperCase();
-                leverage = (strategy.tradeMaxLeverage || 10) <= +leverage ? (strategy.tradeMaxLeverage || 10) : leverage;
+                leverage =
+                    (strategy.tradeMaxLeverage || 10) <= +leverage
+                        ? strategy.tradeMaxLeverage || 10
+                        : leverage;
                 let instance = isTestMode ? binanceTest : binance;
-                let newOrderType = strategy.newOrderType || "MARKET";
-                let partialOrderType = strategy.partialOrderType || "MARKET";
+                let newOrderType = strategy.newOrderType || 'MARKET';
+                let partialOrderType = strategy.partialOrderType || 'MARKET';
                 let isolated = strategy?.isolated || false;
                 let isMaxPositionIncludeOpen = Boolean(strategy?.maxPosition?.includeOpen) || false;
+                let maxLongEntry = Number(strategy.maxLongEntry) || 2;
+                let maxShortEntry = Number(strategy.maxShortEntry) || 2;
                 if (!Object.values(BinanceEnum_1.SignalTypeEnum).includes(signalType)) {
-                    throw new Error("Invalid Signal Type, Signal Type is " + signalType);
+                    throw new Error('Invalid Signal Type, Signal Type is ' + signalType);
                 }
                 let binanceBalance = this.userService.getBinanceBalance(userId);
                 let prevOrder = this.orderService.findOpenOrder(strategy._id, orderDto.copyOrderId, userId, orderDto.symbol, orderDto.side);
+                let allOpenOrders = this.orderService.findAllOpenOrders(strategy._id, userId);
                 let openPositionCountPromise = this.getBinanceAccountOrderCount(instance, isMaxPositionIncludeOpen);
-                let [binanceBalanceRes, prevOrderRes, openPositionCount] = await Promise.all([this.safePromiseBuild(binanceBalance), this.safePromiseBuild(prevOrder), this.safePromiseBuild(openPositionCountPromise)]);
+                let [binanceBalanceRes, prevOrderRes, openPositionCount, allOpenOrdersRes,] = await Promise.all([
+                    this.safePromiseBuild(binanceBalance),
+                    this.safePromiseBuild(prevOrder),
+                    this.safePromiseBuild(openPositionCountPromise),
+                    this.safePromiseBuild(allOpenOrders),
+                ]);
                 if (!binanceBalanceRes.success || binanceBalanceRes?.result?.code) {
-                    throw new Error("Binance Balance Fetch Failed " + binanceBalanceRes.error?.message || binanceBalanceRes?.result?.msg);
+                    throw new Error('Binance Balance Fetch Failed ' +
+                        binanceBalanceRes.error?.message ||
+                        binanceBalanceRes?.result?.msg);
                 }
                 else {
                     binanceBalanceRes = binanceBalanceRes.result;
@@ -336,13 +350,31 @@ let BinanceService = class BinanceService {
                 else {
                     prevOrderRes = null;
                 }
+                if (allOpenOrdersRes.success) {
+                    allOpenOrdersRes = allOpenOrdersRes?.result?.data;
+                }
+                else {
+                    allOpenOrdersRes = null;
+                }
                 if (openPositionCount.success) {
                     openPositionCount = openPositionCount.result;
                 }
                 else {
-                    throw new Error("Open Position Count Fetch Failed " + openPositionCount.error?.message || openPositionCount?.result?.msg);
+                    throw new Error('Open Position Count Fetch Failed ' +
+                        openPositionCount.error?.message ||
+                        openPositionCount?.result?.msg);
                 }
-                this.handleOrderBounced(prevOrderRes, signalType, strategy, side, openPositionCount);
+                let orderBouncedPayload = {
+                    prevOrderRes,
+                    signalType: signalType,
+                    strategy,
+                    side,
+                    openPositionCount,
+                    allOpenOrdersRes,
+                    maxLongEntry,
+                    maxShortEntry,
+                };
+                this.handleOrderBounced(orderBouncedPayload);
                 if (prevOrderRes) {
                     if (signalType === BinanceEnum_1.SignalTypeEnum.NEW) {
                         await this.updateOrderForNewSignal(prevOrderRes);
@@ -358,7 +390,9 @@ let BinanceService = class BinanceService {
                 let rootTradeCapital = Number(strategy.capital);
                 let myCapital = Number(binanceBalanceRes?.balance);
                 let maxTradeAmount = (0, trade_calculations_1.calculateAmountFromPercentage)(myCapital, Number(strategy.tradeMaxAmountPercentage));
-                let orderRatio = prevOrderRes?.initialOrderRatio ? Number(prevOrderRes.initialOrderRatio) : null;
+                let orderRatio = prevOrderRes?.initialOrderRatio
+                    ? Number(prevOrderRes.initialOrderRatio)
+                    : null;
                 let { tradeAmount: accauntTradeAmount, ratio } = (0, trade_calculations_1.calculateMyTradeAmount)(rootTradeAmount, rootTradeCapital, myCapital, maxTradeAmount, orderRatio);
                 quantity = (0, trade_calculations_1.calculateQuantity)(accauntTradeAmount, price);
                 if (signalType == BinanceEnum_1.SignalTypeEnum.CLOSE) {
@@ -366,50 +400,56 @@ let BinanceService = class BinanceService {
                     if (prevOrderRes?.orderQty) {
                         let orderQty = Number(prevOrderRes?.orderQty);
                         let closedQty = Number(prevOrderRes?.closedQty) || 0;
-                        quantity = (orderQty - closedQty + 0.01);
+                        quantity = orderQty - closedQty + 0.01;
                     }
                 }
                 let respectNotion = strategy?.respectNotion || false;
                 quantity = await this.binanceExchaneService.formatQuantity(symbol, quantity, respectNotion);
                 price = await this.binanceExchaneService.formatPrice(symbol, price);
                 await this.configureLeverageAndMarginSettings(instance, symbol, leverage, isolated, userId);
-                let order = "";
-                if ((signalType == BinanceEnum_1.SignalTypeEnum.NEW || signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY)
-                    && side == BinanceEnum_1.PositionSideEnum.LONG) {
-                    let type = signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY ? partialOrderType : newOrderType;
+                let order = '';
+                if ((signalType == BinanceEnum_1.SignalTypeEnum.NEW ||
+                    signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY) &&
+                    side == BinanceEnum_1.PositionSideEnum.LONG) {
+                    let type = signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY
+                        ? partialOrderType
+                        : newOrderType;
                     order = await this.executeFutureBuyOrder(instance, symbol, side, type, quantity, price);
                     if (order?.code) {
                         throw Error(order.msg);
                     }
                 }
-                else if ((signalType == BinanceEnum_1.SignalTypeEnum.NEW || signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY)
-                    && side == BinanceEnum_1.PositionSideEnum.SHORT) {
-                    let type = signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY ? partialOrderType : newOrderType;
+                else if ((signalType == BinanceEnum_1.SignalTypeEnum.NEW ||
+                    signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY) &&
+                    side == BinanceEnum_1.PositionSideEnum.SHORT) {
+                    let type = signalType == BinanceEnum_1.SignalTypeEnum.RE_ENTRY
+                        ? partialOrderType
+                        : newOrderType;
                     order = await this.executeFutureSellOrder(instance, symbol, side, type, quantity, price);
                     if (order?.code) {
                         throw Error(order.msg);
                     }
                 }
-                else if (signalType == BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE
-                    && side == BinanceEnum_1.PositionSideEnum.LONG) {
+                else if (signalType == BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE &&
+                    side == BinanceEnum_1.PositionSideEnum.LONG) {
                     order = await this.executeFutureSellOrder(instance, symbol, side, type, quantity, price);
                     if (order?.code) {
                         let openOrderClosedRes = await this.processClosingOfOpenFutureOrders(instance, symbol, side, quantity);
                         if (openOrderClosedRes.length == 0) {
-                            throw new Error("Partial Close Failed " + order.msg);
+                            throw new Error('Partial Close Failed ' + order.msg);
                         }
                         else {
                             order = openOrderClosedRes;
                         }
                     }
                 }
-                else if (signalType == BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE
-                    && side == BinanceEnum_1.PositionSideEnum.SHORT) {
+                else if (signalType == BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE &&
+                    side == BinanceEnum_1.PositionSideEnum.SHORT) {
                     order = await this.executeFutureBuyOrder(instance, symbol, side, type, quantity, price);
                     if (order?.code) {
                         let openOrderClosedRes = await this.processClosingOfOpenFutureOrders(instance, symbol, side, quantity);
                         if (openOrderClosedRes.length == 0) {
-                            throw new Error("Partial Close Failed " + order.msg);
+                            throw new Error('Partial Close Failed ' + order.msg);
                         }
                         else {
                             order = openOrderClosedRes;
@@ -417,8 +457,10 @@ let BinanceService = class BinanceService {
                     }
                 }
                 else {
-                    throw new Error("Invalid Signal Type or order side, Sended Signal Type: " + signalType + " Order Side: " + side);
-                    ;
+                    throw new Error('Invalid Signal Type or order side, Sended Signal Type: ' +
+                        signalType +
+                        ' Order Side: ' +
+                        side);
                 }
                 return this.generateFutureOrdersResponse(userId, order, orderDto, strategy, true, ratio);
             }
@@ -655,7 +697,8 @@ let BinanceService = class BinanceService {
             throw new Error(`New ${signalType} found in ${strategy.StrategyName} this strategy But new order is stopped`);
         }
     }
-    handleOrderBounced(prevOrderRes, signalType, strategy, side, openPositionCount) {
+    handleOrderBounced(payload) {
+        let { prevOrderRes, signalType, strategy, side, openPositionCount, allOpenOrdersRes, maxLongEntry, maxShortEntry } = payload;
         let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
         if (prevOrderRes && prevOrderRes.reEntryCount >= strategy.maxReEntry) {
             throw new Error(`Signal Ignored for "${strategy.StrategyName}" strategy, because max re-entry count reached of this order.`);
@@ -678,6 +721,14 @@ let BinanceService = class BinanceService {
         }
         if (prefaredSignalType !== side) {
             throw new Error(`We have found "${signalType}" signal in "${strategy.StrategyName}" this strategy in "${side}" this side, but this strategy Position prefarence is "${prefaredSignalType}".`);
+        }
+        let allLongOpenOrders = allOpenOrdersRes.filter(order => order.side == OrderSide_enum_1.OrderSideEnum.LONG).length || 0;
+        let allShortOpenOrders = allOpenOrdersRes.filter(order => order.side == OrderSide_enum_1.OrderSideEnum.SHORT).length || 0;
+        if (maxLongEntry && allLongOpenOrders >= maxLongEntry) {
+            throw new Error(`Max Long Entry Limit Exceeded, Max Long Entry Limit is ${maxLongEntry} For this strategy : ${strategy?.StrategyName}`);
+        }
+        else if (maxShortEntry && allShortOpenOrders >= maxShortEntry) {
+            throw new Error(`Max Short Entry Limit Exceeded, Max Short Entry Limit is ${maxShortEntry} For this strategy : ${strategy?.StrategyName}`);
         }
         return;
     }

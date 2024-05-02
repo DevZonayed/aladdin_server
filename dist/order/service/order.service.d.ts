@@ -42,6 +42,17 @@ export declare class OrderService {
         message: string;
         payload: any;
     }>;
+    findAllOpenOrders(strategyId: string, userId: string): Promise<{
+        status: boolean;
+        data: (import("mongoose").Document<unknown, {}, Order> & Order & {
+            _id: import("mongoose").Types.ObjectId;
+        })[];
+        error?: undefined;
+    } | {
+        status: boolean;
+        error: string;
+        data?: undefined;
+    }>;
     findOpenOrder(strategyId: string, copyOrderId: string, userId: string, symbol: string, side: string): Promise<{
         status: boolean;
         data: import("mongoose").Document<unknown, {}, Order> & Order & {

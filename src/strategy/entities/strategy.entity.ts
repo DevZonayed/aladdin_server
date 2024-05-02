@@ -70,6 +70,12 @@ export class Strategy extends Document {
   @Prop({ type: Number, default: 3 })
   maxReEntry: number;
 
+  @Prop({ type: Number, default: 2 })
+  maxLongEntry: number;
+
+  @Prop({ type: Number, default: 2 })
+  maxShortEntry: number;
+
   @Prop({ type: Date })
   startAt: Date;
 

@@ -105,6 +105,14 @@ __decorate([
     __metadata("design:type", Number)
 ], Strategy.prototype, "maxReEntry", void 0);
 __decorate([
+    (0, mongoose_1.Prop)({ type: Number, default: 2 }),
+    __metadata("design:type", Number)
+], Strategy.prototype, "maxLongEntry", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Number, default: 2 }),
+    __metadata("design:type", Number)
+], Strategy.prototype, "maxShortEntry", void 0);
+__decorate([
     (0, mongoose_1.Prop)({ type: Date }),
     __metadata("design:type", Date)
 ], Strategy.prototype, "startAt", void 0);

@@ -4,7 +4,7 @@
   //   "editor.fontFamily": "Operator Mono Lig, Dank Mono, Operator Mono, Fira Mono , Fira Code",
   "editor.fontLigatures": true,
   "editor.wordWrap": "on",
-  "editor.minimap.enabled": false,
+  "editor.minimap.enabled": true,
   "editor.tokenColorCustomizations": {
     "textMateRules": [
       {
