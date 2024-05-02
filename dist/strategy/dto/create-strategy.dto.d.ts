@@ -19,6 +19,8 @@ export declare class CreateStrategyDto {
     readonly stopNewOrder: boolean;
     readonly prefaredSignalType: string;
     readonly maxPosition: MaxPosition;
+    readonly maxLongEntry: number;
+    readonly maxShortEntry: number;
     readonly stopLossPercentage: number;
     readonly createdBy: string;
 }

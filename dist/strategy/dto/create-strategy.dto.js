@@ -188,6 +188,22 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: Number,
+        description: 'Maximum Long position limit of the strategy',
+        example: 2
+    }),
+    __metadata("design:type", Number)
+], CreateStrategyDto.prototype, "maxLongEntry", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: Number,
+        description: 'Maximum Short position limit of the strategy',
+        example: 2
+    }),
+    __metadata("design:type", Number)
+], CreateStrategyDto.prototype, "maxShortEntry", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
+        type: Number,
         description: 'What should be the maximum lose percentage',
         example: 100
     }),

@@ -158,6 +158,18 @@ export class CreateStrategyDto {
     }
   })
   readonly maxPosition: MaxPosition;
+  @ApiProperty({
+    type: Number,
+    description: 'Maximum Long position limit of the strategy',
+    example: 2
+  })
+  readonly maxLongEntry: number;
+  @ApiProperty({
+    type: Number,
+    description: 'Maximum Short position limit of the strategy',
+    example: 2
+  })
+  readonly maxShortEntry: number;
 
   @ApiProperty({
     type: Number,
