@@ -581,7 +581,7 @@ let BinanceService = class BinanceService {
         }
         let allLongOpenOrders = allOpenOrdersRes.filter(order => order.side == OrderSide_enum_1.OrderSideEnum.LONG && order.strategyId == strategy._id.toString());
         let allShortOpenOrders = allOpenOrdersRes.filter(order => order.side == OrderSide_enum_1.OrderSideEnum.SHORT && order.strategyId == strategy._id.toString());
-        let openOrderInPerticularSymbol = allOpenOrdersRes.filter(order => order.symbol == symbol);
+        let openOrderInPerticularSymbol = allOpenOrdersRes.filter(order => order.symbol == symbol && order.strategyId !== strategy._id.toString());
         let duplicateOrderBounced = strategy.duplicateOrderBounced || false;
         console.table({
             allLongOpenOrders: allLongOpenOrders.length,
@@ -591,10 +591,10 @@ let BinanceService = class BinanceService {
             maxShortEntry: maxShortEntry,
             strategyId: strategy._id
         });
-        if (allLongOpenOrders.length >= maxLongEntry) {
+        if (allLongOpenOrders.length >= maxLongEntry && signalType == BinanceEnum_1.SignalTypeEnum.NEW && side == OrderSide_enum_1.OrderSideEnum.LONG) {
             throw new Error(`Max Long Entry Limit Exceeded, Max Long Entry Limit is ${maxLongEntry} For this strategy : ${strategy?.StrategyName}`);
         }
-        if (allShortOpenOrders.length >= maxShortEntry) {
+        if (allShortOpenOrders.length >= maxShortEntry && signalType == BinanceEnum_1.SignalTypeEnum.NEW && side == OrderSide_enum_1.OrderSideEnum.SHORT) {
             throw new Error(`Max Short Entry Limit Exceeded, Max Short Entry Limit is ${maxShortEntry} For this strategy : ${strategy?.StrategyName}`);
         }
         if (duplicateOrderBounced && openOrderInPerticularSymbol.length && signalType == BinanceEnum_1.SignalTypeEnum.NEW) {

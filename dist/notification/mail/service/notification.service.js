@@ -56,7 +56,8 @@ let NotificationService = class NotificationService {
             return result;
         }
         catch (err) {
-            throw new Error(err);
+            console.log(err);
+            return false;
         }
     }
 };

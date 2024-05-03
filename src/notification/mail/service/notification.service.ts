@@ -46,7 +46,9 @@ export class NotificationService {
             let result = await Promise.all(mailsPromise);
             return result;
         } catch (err) {
-            throw new Error(err);
+            // throw new Error(err);
+            console.log(err)
+            return false;
         }
     }
 }

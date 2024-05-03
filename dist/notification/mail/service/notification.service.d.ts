@@ -8,5 +8,5 @@ export declare class NotificationService {
         subject: string;
         message: string;
         type: string;
-    }): Promise<any[]>;
+    }): Promise<false | any[]>;
 }
