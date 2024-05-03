@@ -21,6 +21,7 @@ export declare class CreateStrategyDto {
     readonly maxPosition: MaxPosition;
     readonly maxLongEntry: number;
     readonly maxShortEntry: number;
+    readonly duplicateOrderBounced: boolean;
     readonly stopLossPercentage: number;
     readonly createdBy: string;
 }

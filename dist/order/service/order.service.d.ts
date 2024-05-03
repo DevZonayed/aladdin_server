@@ -42,7 +42,7 @@ export declare class OrderService {
         message: string;
         payload: any;
     }>;
-    findAllOpenOrders(strategyId: string, userId: string): Promise<{
+    findAllOpenOrders(userId: string): Promise<{
         status: boolean;
         data: (import("mongoose").Document<unknown, {}, Order> & Order & {
             _id: import("mongoose").Types.ObjectId;

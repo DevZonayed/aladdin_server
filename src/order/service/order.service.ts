@@ -160,10 +160,10 @@ export class OrderService {
   }
 
 
-  async findAllOpenOrders(strategyId: string, userId: string) {
+  async findAllOpenOrders(userId: string) {
     try {
 
-      const data = await this.OrderModel.find({ status: StatusEnum.OPEN, strategyId, userId }).exec();
+      const data = await this.OrderModel.find({ status: StatusEnum.OPEN, userId }).exec();
       if (data) {
         return {
           status: true,

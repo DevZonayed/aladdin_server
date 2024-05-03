@@ -49,6 +49,7 @@ export declare class Strategy extends Document {
     maxReEntry: number;
     maxLongEntry: number;
     maxShortEntry: number;
+    duplicateOrderBounced: boolean;
     startAt: Date;
     createdBy: Types.ObjectId;
 }

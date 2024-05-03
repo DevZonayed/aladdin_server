@@ -2,7 +2,7 @@ import { HttpStatus, Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BinanceService } from 'src/binance/service/binance.service';
-import { ASSET_NOT_ALLOWED, DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, SOMETHING_WENT_WRONG, STRATEGY_CREATED_FAILED, STRATEGY_CREATED_SUCCESSFULLY, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
+import { ASSET_NOT_ALLOWED, DATA_FOUND, FAIELD_RESPONSE, NO_CREDENTIALS_DATA_FOUND, NO_DATA_FOUND, SOMETHING_WENT_WRONG, STRATEGY_CREATED_FAILED, STRATEGY_CREATED_SUCCESSFULLY, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
 import { SortBy } from 'src/common/enum/enum-sort-by';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/service/user.service';
@@ -257,7 +257,7 @@ export class StrategyService {
         return createApiResponse(
           HttpStatus.NOT_FOUND,
           FAIELD_RESPONSE,
-          NO_DATA_FOUND,
+          NO_CREDENTIALS_DATA_FOUND,
           [],
         );
       }

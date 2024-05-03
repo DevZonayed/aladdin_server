@@ -7,7 +7,6 @@ import { MailNotificationTypeEnum } from 'src/notification/mail/enum/mail.type.e
 import { NotificationService } from 'src/notification/mail/service/notification.service';
 import { Order } from 'src/order/entities/order.entity';
 import { OrderSideEnum } from 'src/order/enums/OrderSide.enum';
-import { CreatedByEnum } from 'src/order/enums/createdBy.enum';
 import { StatusEnum } from 'src/order/enums/status.enum';
 import { OrderService } from 'src/order/service/order.service';
 import { OrderWebHookDto } from 'src/strategy/dto/order_webhook-dto';
@@ -17,6 +16,7 @@ import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/service/user.service';
 import { PositionSideEnum, PositionTypeEnum, SignalTypeEnum } from '../enum/BinanceEnum';
 import { OrderBouncedPayloadInterface } from '../enum/OrderBouncedInterface';
+import { buildNewOrderPayload, computeAllOrderOrderQuantity, computeOrderUpdateDetails, generateFutureOrdersResponse, identifyOrdersForCancellation, retrieveDataFromOrderResult, safePromiseBuild } from '../utils/order.utils';
 import { calculateAmountFromPercentage, calculateMyTradeAmount, calculateQuantity } from '../utils/trade.calculations';
 import { BinanceExchaneService } from './exchangeInfo.service';
 const Binance = require('node-binance-api');
@@ -41,8 +41,8 @@ export class BinanceService {
     async checkBalance(apiKey: string, secretKey: string) {
         return await this.executeBinanceApiAction(apiKey, secretKey, async (binance, binanceTest) => {
             try {
-                const originalApiPromise = this.safePromiseBuild(binance.futuresBalance(), 'Original API');
-                const testnetApiPromise = this.safePromiseBuild(binanceTest.futuresBalance(), 'Testnet API');
+                const originalApiPromise = safePromiseBuild(binance.futuresBalance(), 'Original API');
+                const testnetApiPromise = safePromiseBuild(binanceTest.futuresBalance(), 'Testnet API');
 
                 const results = await Promise.all([originalApiPromise, testnetApiPromise]);
                 const successfulResults = results.filter(r => r.success && !r.result.code);
@@ -71,13 +71,6 @@ export class BinanceService {
             }
         });
     }
-
-    private async safePromiseBuild(apiCall, identifier = "") {
-        return apiCall.then(
-            result => ({ result, identifier, success: true }),
-            error => ({ error, identifier, success: false })
-        );
-    };
 
     async createStrategyOrders(strategy: Strategy, userCredentials: User[], OrderWebHookDto: OrderWebHookDto) {
         try {
@@ -197,7 +190,7 @@ export class BinanceService {
                 message,
                 order,
                 ratio,
-            } = this.retrieveDataFromOrderResult(result);
+            } = retrieveDataFromOrderResult(result);
 
             if (!success) {
                 throw new Error(message);
@@ -206,66 +199,19 @@ export class BinanceService {
             if (existOrder.status) {
                 return this.updateExistingOrder(existOrder, orderDto, order);
             } else {
-                return this.buildNewOrderPayload(success, userId, strategy, orderDto, order, ratio, message);
+                let payload = buildNewOrderPayload(success, userId, strategy, orderDto, order, ratio, message);
+                await this.orderService.create(payload)
             }
         } catch (err) {
             throw new Error(err.message);
         }
     }
 
-    private retrieveDataFromOrderResult(result: any) {
-        return {
-            userId: result.userId,
-            orderDto: result.orderDto,
-            success: result.success,
-            message: result.message,
-            order: result?.order,
-            ratio: result?.ratio,
-            strategy: result.strategy
-        };
-    }
 
-
-    private buildNewOrderPayload(success, userId, strategy, orderDto, order, ratio, message) {
-        let payload: any = {
-            userId,
-            strategyId: strategy._id,
-            copyOrderId: orderDto.copyOrderId,
-            binanceOrderId: order.orderId,
-            createdBy: CreatedByEnum.STRATEGY,
-            symbol: orderDto.symbol,
-            type: orderDto.type,
-            side: orderDto.side,
-            entryPrice: order.price,
-            orderQty: order.origQty,
-            leverage: orderDto.leverage,
-            isolated: orderDto.isolated,
-            initialOrderRatio: ratio
-        };
-        if (success) {
-            payload = {
-                ...payload,
-                binanceOrderId: order.orderId,
-                entryPrice: order.price,
-                orderQty: order.origQty,
-                initialOrderRatio: ratio
-            };
-        } else {
-            payload = {
-                ...payload,
-                binanceOrderId: null,
-                orderQty: null,
-                status: StatusEnum.CLOSED,
-                closeReason: message
-            };
-        }
-
-        return this.orderService.create(payload);
-    }
     private async updateExistingOrder(existOrder, orderDto, order) {
         try {
             const orderData = existOrder.data;
-            const updatePayload = this.computeOrderUpdateDetails(orderData, orderDto, order);
+            const updatePayload = computeOrderUpdateDetails(orderData, orderDto, order);
 
             const updateResult = await this.orderService.update(orderData._id, updatePayload);
             if (updateResult.payload) {
@@ -279,31 +225,7 @@ export class BinanceService {
         }
     }
 
-    private computeOrderUpdateDetails(orderData, orderDto, order) {
-        let updatePayload = {};
 
-        if (orderDto.signalType === SignalTypeEnum.PARTIAL_CLOSE || orderDto.signalType === SignalTypeEnum.CLOSE) {
-            let closedQuantity = orderData.closedQty + this.computeClosedOrderQuantity(order, orderDto);
-            let totalOrderQuantity = orderData.orderQty;
-
-            if (totalOrderQuantity <= closedQuantity) {
-                updatePayload = {
-                    closedQty: closedQuantity,
-                    status: StatusEnum.CLOSED,
-                    closeReason: `${orderDto.signalType} Signals Quantity Sell Achived!`
-                };
-            } else {
-                updatePayload = {
-                    closedQty: closedQuantity
-                };
-            }
-        } else {
-            let totalOrderQuantity = orderData.orderQty + this.computeOrderTotalQuantity(order, orderDto);
-            updatePayload = { orderQty: totalOrderQuantity };
-        }
-
-        return updatePayload;
-    }
 
     private async forceCloseOrder(order: Order) {
         try {
@@ -318,23 +240,6 @@ export class BinanceService {
         }
     }
 
-    private computeClosedOrderQuantity(order, orderDto) {
-        if (Array.isArray(order)) {
-            return order.reduce((sum, item) => sum + Number(item?.origQty || 0), 0);
-        } else if (order && order.origQty) {
-            return Number(order.origQty);
-        } else {
-            return Number(orderDto.quantity);
-        }
-    }
-
-    private computeOrderTotalQuantity(order, orderDto) {
-        if (order && order.origQty) {
-            return Number(order.origQty);
-        } else {
-            return Number(orderDto.quantity);
-        }
-    }
 
     // Create Order
     private async generateFutureOrders(strategy: Strategy, credentials: any, orderDto: OrderWebHookDto) {
@@ -367,8 +272,9 @@ export class BinanceService {
                     let isolated = strategy?.isolated || false;
                     let isMaxPositionIncludeOpen =
                         Boolean(strategy?.maxPosition?.includeOpen) || false;
-                    let maxLongEntry = Number(strategy.maxLongEntry) || 2;
-                    let maxShortEntry = Number(strategy.maxShortEntry) || 2;
+
+                    let maxLongEntry = Number(strategy.maxLongEntry) >= 0 ? Number(strategy.maxLongEntry) : 2;
+                    let maxShortEntry = Number(strategy.maxShortEntry) >= 0 ? Number(strategy.maxShortEntry) : 2;
 
                     if (!Object.values(SignalTypeEnum).includes(signalType as any)) {
                         throw new Error(
@@ -386,7 +292,6 @@ export class BinanceService {
                         orderDto.side,
                     );
                     let allOpenOrders = this.orderService.findAllOpenOrders(
-                        strategy._id,
                         userId,
                     );
                     let openPositionCountPromise = this.getBinanceAccountOrderCount(
@@ -400,10 +305,10 @@ export class BinanceService {
                         openPositionCount,
                         allOpenOrdersRes,
                     ] = await Promise.all([
-                        this.safePromiseBuild(binanceBalance),
-                        this.safePromiseBuild(prevOrder),
-                        this.safePromiseBuild(openPositionCountPromise),
-                        this.safePromiseBuild(allOpenOrders),
+                        safePromiseBuild(binanceBalance),
+                        safePromiseBuild(prevOrder),
+                        safePromiseBuild(openPositionCountPromise),
+                        safePromiseBuild(allOpenOrders),
                     ]);
 
                     if (!binanceBalanceRes.success || binanceBalanceRes?.result?.code) {
@@ -441,6 +346,7 @@ export class BinanceService {
                     let orderBouncedPayload: OrderBouncedPayloadInterface = {
                         prevOrderRes,
                         signalType: signalType as SignalTypeEnum,
+                        symbol,
                         strategy,
                         side,
                         openPositionCount,
@@ -618,7 +524,7 @@ export class BinanceService {
                         );
                     }
 
-                    return this.generateFutureOrdersResponse(
+                    return generateFutureOrdersResponse(
                         userId,
                         order,
                         orderDto,
@@ -627,7 +533,7 @@ export class BinanceService {
                         ratio,
                     );
                 } catch (error) {
-                    return this.generateFutureOrdersResponse(
+                    return generateFutureOrdersResponse(
                         userId,
                         error,
                         orderDto,
@@ -648,7 +554,7 @@ export class BinanceService {
             if (openOrders?.code) {
                 throw new Error(openOrders.message)
             }
-            let orderIds = this.identifyOrdersForCancellation(openOrders, quantity, side)
+            let orderIds = identifyOrdersForCancellation(openOrders, quantity, side)
             let orders = openOrders.filter((order: any) => orderIds.includes(order.orderId))
 
             if (orderIds.length) {
@@ -657,7 +563,7 @@ export class BinanceService {
                     await Promise.all(cancleOrderPromises);
 
                     // Calculate the remaining quantity and place a new order
-                    const remainingQuantity = quantity - this.computeTotalOrderQuantity(orders);
+                    const remainingQuantity = quantity - computeAllOrderOrderQuantity(orders);
                     if (remainingQuantity > 0) {
                         // Place new order logic here
                     }
@@ -674,42 +580,7 @@ export class BinanceService {
         }
     }
 
-    private computeTotalOrderQuantity(orders) {
-        return orders.reduce((total, order) => total + parseFloat(order?.origQty), 0);
-    }
 
-
-    private identifyOrdersForCancellation(orders: any, targetQty: number, targetSide: String) {
-
-        targetSide = targetSide.toUpperCase();
-        const filteredOrders = orders.filter((order: any) => {
-            if (targetSide === 'LONG') {
-                return order.side === 'BUY' && order.positionSide === 'LONG';
-            } else if (targetSide === 'SHORT') {
-                return order.side === 'SELL' && order.positionSide === 'SHORT';
-            }
-        });
-
-        if (!filteredOrders.length) {
-            return [];
-        }
-
-        filteredOrders.sort((a: any, b: any) => parseFloat(a?.origQty) - parseFloat(b?.origQty));
-
-        let totalQty = 0;
-        let ordersToCancel = [];
-
-        for (const order of filteredOrders) {
-            totalQty += parseFloat(order?.origQty);
-            ordersToCancel.push(order?.orderId);
-
-            if (totalQty >= targetQty) {
-                break;
-            }
-        }
-
-        return ordersToCancel;
-    }
 
     private async configureLeverageAndMarginSettings(instance, symbol, leverage, isolated, userId) {
         try {
@@ -803,25 +674,7 @@ export class BinanceService {
     }
 
 
-    private generateFutureOrdersResponse(userId, data, orderDto, strategy, isSuccess, ratio = null) {
-        if (!isSuccess) {
-            return {
-                userId,
-                orderDto,
-                strategy,
-                success: false,
-                message: data?.message || "Order failed"
-            };
-        }
-        return {
-            userId,
-            orderDto,
-            strategy,
-            ratio,
-            order: data,
-            success: true
-        };
-    }
+
 
 
     private async getBinanceRiskPositionCount(binance: BinanceType) {
@@ -920,7 +773,7 @@ export class BinanceService {
 
     private handleOrderBounced(payload: OrderBouncedPayloadInterface) {
 
-
+        console.log("Order Bounced Function Called")
         let {
             prevOrderRes,
             signalType,
@@ -929,8 +782,12 @@ export class BinanceService {
             openPositionCount,
             allOpenOrdersRes,
             maxLongEntry,
-            maxShortEntry
+            maxShortEntry,
+            symbol
         } = payload;
+
+        maxLongEntry = Number(maxLongEntry);
+        maxShortEntry = Number(maxShortEntry);
 
         let maxPositionLimit = Number(strategy?.maxPosition?.max) || 10;
 
@@ -953,26 +810,39 @@ export class BinanceService {
             throw new Error(`Max Position Limit Exceeded, Max Position Limit is ${maxPositionLimit} For this strategy : ${strategy?.StrategyName}`)
         }
 
-        // Prefared Signal type match
-        let prefaredSignalType = strategy?.prefaredSignalType || "BOTH"
+        let allLongOpenOrders = allOpenOrdersRes.filter(order => order.side == OrderSideEnum.LONG && order.strategyId == strategy._id.toString());
+        let allShortOpenOrders = allOpenOrdersRes.filter(order => order.side == OrderSideEnum.SHORT && order.strategyId == strategy._id.toString());
 
-        if (prefaredSignalType == "BOTH") {
-            return;
-        }
+        let openOrderInPerticularSymbol = allOpenOrdersRes.filter(order => order.symbol == symbol);
+        let duplicateOrderBounced = strategy.duplicateOrderBounced || false;
 
-        if (prefaredSignalType !== side) {
-            throw new Error(`We have found "${signalType}" signal in "${strategy.StrategyName}" this strategy in "${side}" this side, but this strategy Position prefarence is "${prefaredSignalType}".`)
-        }
+        console.table({
+            allLongOpenOrders: allLongOpenOrders.length,
+            allShortOpenOrders: allShortOpenOrders.length,
+            allOpenOrders: allOpenOrdersRes.length,
+            maxLongEntry: maxLongEntry,
+            maxShortEntry: maxShortEntry,
+            strategyId: strategy._id
+        })
 
-        let allLongOpenOrders = allOpenOrdersRes.filter(order => order.side == OrderSideEnum.LONG).length || 0;
-        let allShortOpenOrders = allOpenOrdersRes.filter(order => order.side == OrderSideEnum.SHORT).length || 0;
-
-        if (maxLongEntry && allLongOpenOrders >= maxLongEntry) {
+        if (allLongOpenOrders.length >= maxLongEntry) {
             throw new Error(`Max Long Entry Limit Exceeded, Max Long Entry Limit is ${maxLongEntry} For this strategy : ${strategy?.StrategyName}`)
-        } else if (maxShortEntry && allShortOpenOrders >= maxShortEntry) {
+        }
+
+        if (allShortOpenOrders.length >= maxShortEntry) {
             throw new Error(`Max Short Entry Limit Exceeded, Max Short Entry Limit is ${maxShortEntry} For this strategy : ${strategy?.StrategyName}`)
         }
 
+        if (duplicateOrderBounced && openOrderInPerticularSymbol.length && signalType == SignalTypeEnum.NEW) {
+            throw new Error(`Duplicate Order Detacted for ${strategy.StrategyName}, and ${symbol} symbol.`)
+        }
+
+
+        // Prefared Signal type match
+        let prefaredSignalType = strategy?.prefaredSignalType || "BOTH"
+        if (prefaredSignalType !== "BOTH" && prefaredSignalType !== side) {
+            throw new Error(`We have found "${signalType}" signal in "${strategy.StrategyName}" this strategy in "${side}" this side, but this strategy Position prefarence is "${prefaredSignalType}".`)
+        }
 
         return;
     }

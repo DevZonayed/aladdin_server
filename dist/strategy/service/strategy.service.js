@@ -154,7 +154,7 @@ let StrategyService = class StrategyService {
             }
             const credentials = await this.userService.getCredentialsOfStrategy(strategy._id);
             if (credentials.length === 0) {
-                return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND, []);
+                return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_CREDENTIALS_DATA_FOUND, []);
             }
             const allowAssets = strategy?.allowAssets || null;
             const bannedAssets = strategy?.bannedAssets || null;

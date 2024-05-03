@@ -203,6 +203,14 @@ __decorate([
 ], CreateStrategyDto.prototype, "maxShortEntry", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
+        type: Boolean,
+        description: 'If order is available in diffrent strategy in same symbol then bounce it',
+        example: false
+    }),
+    __metadata("design:type", Boolean)
+], CreateStrategyDto.prototype, "duplicateOrderBounced", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({
         type: Number,
         description: 'What should be the maximum lose percentage',
         example: 100

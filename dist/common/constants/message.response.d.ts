@@ -18,6 +18,7 @@ export declare const STRATEGY_INCOMING_ORDER_DISABLED = "Strategy Incoming Order
 export declare const ASSET_NOT_ALLOWED = "Asset Not Allowed";
 export declare const DATA_FOUND = "Data Found";
 export declare const NO_DATA_FOUND = "No Data Found";
+export declare const NO_CREDENTIALS_DATA_FOUND = "No Credentials Data Found";
 export declare const SOMETHING_WENT_WRONG = "Something went wrong";
 export declare const YOU_ARE_ALREADY_SUBSCRIBED_TO_THIS_STRATEGY = "You are already subscribed to this strategy";
 export declare const YOU_ARE_NOT_SUBSCRIBED_TO_THIS_STRATEGY = "You are not subscribed to this strategy";

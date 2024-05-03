@@ -172,6 +172,13 @@ export class CreateStrategyDto {
   readonly maxShortEntry: number;
 
   @ApiProperty({
+    type: Boolean,
+    description: 'If order is available in diffrent strategy in same symbol then bounce it',
+    example: false
+  })
+  readonly duplicateOrderBounced: boolean;
+
+  @ApiProperty({
     type: Number,
     description: 'What should be the maximum lose percentage',
     example: 100

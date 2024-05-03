@@ -10,4 +10,5 @@ export interface OrderBouncedPayloadInterface {
     allOpenOrdersRes: Order[];
     maxLongEntry: number;
     maxShortEntry: number;
+    symbol: string;
 }

@@ -16,7 +16,6 @@ export declare class BinanceService {
     binanceExchaneService: BinanceExchaneService;
     constructor(userService: UserService, orderService: OrderService, strategyService: StrategyService, notificationService: NotificationService, cacheService: Cache);
     checkBalance(apiKey: string, secretKey: string): Promise<any>;
-    private safePromiseBuild;
     createStrategyOrders(strategy: Strategy, userCredentials: User[], OrderWebHookDto: OrderWebHookDto): Promise<{
         successResults: any;
         failedResults: PromiseSettledResult<any>[];
@@ -24,21 +23,13 @@ export declare class BinanceService {
     }>;
     private persistOrderResults;
     private handleOrderResultProcessing;
-    private retrieveDataFromOrderResult;
-    private buildNewOrderPayload;
     private updateExistingOrder;
-    private computeOrderUpdateDetails;
     private forceCloseOrder;
-    private computeClosedOrderQuantity;
-    private computeOrderTotalQuantity;
     private generateFutureOrders;
     private processClosingOfOpenFutureOrders;
-    private computeTotalOrderQuantity;
-    private identifyOrdersForCancellation;
     private configureLeverageAndMarginSettings;
     private executeFutureBuyOrder;
     private executeFutureSellOrder;
-    private generateFutureOrdersResponse;
     private getBinanceRiskPositionCount;
     private getBinanceOpenOrderCount;
     private getBinanceAccountOrderCount;
