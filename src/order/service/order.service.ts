@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { DATA_FOUND, FAIELD_RESPONSE, NO_DATA_FOUND, ORDER_CREATE_FAILED, ORDER_CREATE_SUCCESS, SOMETHING_WENT_WRONG, SUCCESS_RESPONSE, createApiResponse } from 'src/common/constants';
 import { SortBy } from 'src/common/enum/enum-sort-by';
 import { Order } from '../entities/order.entity';
@@ -131,6 +131,108 @@ export class OrderService {
       );
     }
   }
+  async findAllOpenOrderByStrategy(
+    strategyId: string,
+    page: number,
+    limit: number,
+    order: string,
+    sort: SortBy,
+    search: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<any> {
+    try {
+      const pipeline: any[] = [];
+      const matchStage: any = {
+        status: StatusEnum.OPEN
+      };
+
+      if (strategyId) {
+        matchStage.strategyId = {
+          $in: [strategyId, new Types.ObjectId(strategyId)],
+        };
+      }
+
+
+      if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        const allFields = Object.keys(this.OrderModel.schema.obj);
+
+        matchStage.$or = allFields.map((field) => ({
+          [field]: { $regex: searchRegex },
+        }));
+      }
+
+      if (startDate && endDate) {
+        const startDateObject = new Date(startDate);
+        const endDateObject = new Date(endDate);
+
+        matchStage.createdAt = {
+          $gte: startDateObject,
+          $lt: endDateObject,
+        };
+      }
+
+      if (Object.keys(matchStage).length > 0) {
+        pipeline.push({ $match: matchStage });
+      }
+
+      pipeline.push({ $count: 'total' });
+
+      const totalResult = await this.OrderModel.aggregate(pipeline);
+      const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+      pipeline.pop();
+
+      const startIndex = (page - 1) * limit;
+
+      pipeline.push(
+        { $skip: startIndex },
+        { $limit: parseInt(limit.toString(), 10) },
+      );
+
+      const sortStage: any = {};
+      sortStage[order] = sort === 'desc' ? -1 : 1;
+      pipeline.push({ $sort: sortStage });
+
+      const data = await this.OrderModel.aggregate(pipeline);
+
+      const totalPages = Math.ceil(total / limit);
+      const hasNextPage = page < totalPages;
+      const hasPrevPage = page > 1;
+      const nextPage = hasNextPage ? Number(page) + 1 : null;
+      const prevPage = hasPrevPage ? Number(page) - 1 : null;
+
+      if (data.length > 0) {
+        return createApiResponse(HttpStatus.OK, SUCCESS_RESPONSE, DATA_FOUND, {
+          data,
+          pagination: {
+            total,
+            totalPages,
+            currentPage: Number(page),
+            hasNextPage,
+            hasPrevPage,
+            nextPage,
+            prevPage,
+          },
+        });
+      } else {
+        return createApiResponse(
+          HttpStatus.OK,
+          SUCCESS_RESPONSE,
+          NO_DATA_FOUND,
+        );
+      }
+    } catch (error) {
+      return createApiResponse(
+        HttpStatus.BAD_REQUEST,
+        FAIELD_RESPONSE,
+        SOMETHING_WENT_WRONG,
+        error,
+      );
+    }
+  }
+
 
   async findOne(id: string) {
     try {

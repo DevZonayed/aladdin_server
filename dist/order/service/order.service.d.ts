@@ -23,7 +23,7 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { HttpStatus } from '@nestjs/common';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { SortBy } from 'src/common/enum/enum-sort-by';
 import { Order } from '../entities/order.entity';
 export declare class OrderService {
@@ -36,6 +36,7 @@ export declare class OrderService {
         payload: any;
     }>;
     findAll(page: number, limit: number, order: string, sort: SortBy, search: string, startDate: Date, endDate: Date): Promise<any>;
+    findAllOpenOrderByStrategy(strategyId: string, page: number, limit: number, order: string, sort: SortBy, search: string, startDate: Date, endDate: Date): Promise<any>;
     findOne(id: string): Promise<{
         statusCode: HttpStatus;
         response: string;
@@ -45,7 +46,7 @@ export declare class OrderService {
     findAllOpenOrders(userId: string): Promise<{
         status: boolean;
         data: (import("mongoose").Document<unknown, {}, Order> & Order & {
-            _id: import("mongoose").Types.ObjectId;
+            _id: Types.ObjectId;
         })[];
         error?: undefined;
     } | {
@@ -56,7 +57,7 @@ export declare class OrderService {
     findOpenOrder(strategyId: string, copyOrderId: string, userId: string, symbol: string, side: string): Promise<{
         status: boolean;
         data: import("mongoose").Document<unknown, {}, Order> & Order & {
-            _id: import("mongoose").Types.ObjectId;
+            _id: Types.ObjectId;
         };
         error?: undefined;
     } | {
