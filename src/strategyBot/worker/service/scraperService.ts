@@ -325,7 +325,7 @@ export class ScrapWorker {
             }
 
             let orderQty = Number(newOrder.positionAmount) - Number(prevOrder.positionAmount);
-            let OrderType = +newOrder.positionAmount > +prevOrder.positionAmount ? SignalTypeEnum.RE_ENTRY : SignalTypeEnum.PARTIAL_CLOSE
+            let OrderType = Math.abs(Number(newOrder.positionAmount)) > Math.abs(Number(prevOrder.positionAmount)) ? SignalTypeEnum.RE_ENTRY : SignalTypeEnum.PARTIAL_CLOSE
             // Order Procidure
             let strategyService: StrategyService = this.strategyService;
             let botName = this.botDto.BotName
