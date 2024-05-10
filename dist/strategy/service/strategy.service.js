@@ -148,7 +148,7 @@ let StrategyService = class StrategyService {
     }
     async handleWebHook(endPoint, order) {
         try {
-            console.table({
+            console.warn({
                 endPoint,
                 order,
             });

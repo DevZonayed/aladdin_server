@@ -243,7 +243,7 @@ export class StrategyService {
   async handleWebHook(endPoint: string, order: OrderWebHookDto) {
     try {
 
-      console.table({
+      console.warn({
         endPoint,
         order,
       })
