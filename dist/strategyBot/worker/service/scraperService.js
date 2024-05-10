@@ -263,7 +263,7 @@ class ScrapWorker {
                 return;
             }
             let orderQty = Number(newOrder.positionAmount) - Number(prevOrder.positionAmount);
-            let OrderType = +newOrder.positionAmount > +prevOrder.positionAmount ? BinanceEnum_1.SignalTypeEnum.RE_ENTRY : BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE;
+            let OrderType = Math.abs(Number(newOrder.positionAmount)) > Math.abs(Number(prevOrder.positionAmount)) ? BinanceEnum_1.SignalTypeEnum.RE_ENTRY : BinanceEnum_1.SignalTypeEnum.PARTIAL_CLOSE;
             let strategyService = this.strategyService;
             let botName = this.botDto.BotName;
             let botSlag = this.botDto.strategySlug;
