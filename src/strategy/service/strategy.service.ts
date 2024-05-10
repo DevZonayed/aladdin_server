@@ -242,6 +242,12 @@ export class StrategyService {
 
   async handleWebHook(endPoint: string, order: OrderWebHookDto) {
     try {
+
+      console.table({
+        endPoint,
+        order,
+      })
+
       let strategy = await this.StrategyModel.findOne({ apiSlug: endPoint })
       if (!strategy) {
         return createApiResponse(

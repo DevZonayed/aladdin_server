@@ -148,6 +148,10 @@ let StrategyService = class StrategyService {
     }
     async handleWebHook(endPoint, order) {
         try {
+            console.table({
+                endPoint,
+                order,
+            });
             let strategy = await this.StrategyModel.findOne({ apiSlug: endPoint });
             if (!strategy) {
                 return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.FAIELD_RESPONSE, constants_1.NO_DATA_FOUND, []);
