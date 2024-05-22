@@ -22,25 +22,16 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { Document, Types } from 'mongoose';
-export declare class Bot extends Document {
-    BotName: string;
-    description: string;
-    strategySlugs: string[];
-    strategyId: string;
-    p20t: string;
-    csrfToken: string;
-    scrapInterval: number;
-    isPublic: boolean;
-    runningOrders: number;
-    isRunning: boolean;
-    haveProxy: boolean;
-    proxyUrl: string;
-    startAt: Date;
-    createdBy: Types.ObjectId;
+import { Model } from 'mongoose';
+import { CreateBinanceBotDto } from '../dto/create-binance-bot.dto';
+import { UpdateBinanceBotDto } from '../dto/update-binance-bot.dto';
+import { BinanceBot } from '../entities/binance-bot.entity';
+export declare class BinanceBotService {
+    private binanceBotModel;
+    constructor(binanceBotModel: Model<BinanceBot>);
+    create(createBinanceBotDto: CreateBinanceBotDto): Promise<BinanceBot>;
+    findAll(): Promise<BinanceBot[]>;
+    findOne(id: string): Promise<BinanceBot>;
+    update(id: string, updateBinanceBotDto: UpdateBinanceBotDto): Promise<BinanceBot>;
+    remove(id: string): Promise<any>;
 }
-export declare const BotSchema: import("mongoose").Schema<Bot, import("mongoose").Model<Bot, any, any, any, Document<unknown, any, Bot> & Bot & {
-    _id: Types.ObjectId;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Bot, Document<unknown, {}, import("mongoose").FlatRecord<Bot>> & import("mongoose").FlatRecord<Bot> & {
-    _id: Types.ObjectId;
-}>;

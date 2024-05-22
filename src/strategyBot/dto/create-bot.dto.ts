@@ -19,11 +19,11 @@ export class CreateBotDto {
   readonly description: string;
 
   @ApiProperty({
-    type: String,
+    type: [String],
     description: 'The Stratefy Slug that you want to add on this bot',
-    example: "demo-1",
+    example: ["demo-1"],
   })
-  readonly strategySlug: string;
+  readonly strategySlugs: string[];
 
   @ApiProperty({
     type: String,

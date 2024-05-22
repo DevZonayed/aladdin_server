@@ -1,7 +1,7 @@
 export declare class CreateBotDto {
     readonly BotName: string;
     readonly description: string;
-    readonly strategySlug: string;
+    readonly strategySlugs: string[];
     readonly strategyId: string;
     readonly p20t: string;
     readonly csrfToken: string;

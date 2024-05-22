@@ -22,25 +22,10 @@
 /// <reference types="mongoose/types/validation" />
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
-import { Document, Types } from 'mongoose';
-export declare class Bot extends Document {
-    BotName: string;
-    description: string;
-    strategySlugs: string[];
-    strategyId: string;
-    p20t: string;
-    csrfToken: string;
-    scrapInterval: number;
-    isPublic: boolean;
-    runningOrders: number;
-    isRunning: boolean;
-    haveProxy: boolean;
-    proxyUrl: string;
-    startAt: Date;
-    createdBy: Types.ObjectId;
+import { Types } from 'mongoose';
+export declare class CreateBinanceBotDto {
+    readonly strategyAccauntName: string;
+    readonly strategyAccaunt: Types.ObjectId;
+    readonly strategySlugs: string[];
+    readonly isActive: boolean;
 }
-export declare const BotSchema: import("mongoose").Schema<Bot, import("mongoose").Model<Bot, any, any, any, Document<unknown, any, Bot> & Bot & {
-    _id: Types.ObjectId;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Bot, Document<unknown, {}, import("mongoose").FlatRecord<Bot>> & import("mongoose").FlatRecord<Bot> & {
-    _id: Types.ObjectId;
-}>;

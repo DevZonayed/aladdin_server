@@ -9,8 +9,8 @@ export class Bot extends Document {
   @Prop({ type: String })
   description: string;
 
-  @Prop({ type: String, required: true })
-  strategySlug: string;
+  @Prop({ type: [String], required: true })
+  strategySlugs: string[];
 
   @Prop({ type: String, required: true, trim: true })
   strategyId: string;

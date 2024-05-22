@@ -24,9 +24,9 @@ __decorate([
     __metadata("design:type", String)
 ], Bot.prototype, "description", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, required: true }),
-    __metadata("design:type", String)
-], Bot.prototype, "strategySlug", void 0);
+    (0, mongoose_1.Prop)({ type: [String], required: true }),
+    __metadata("design:type", Array)
+], Bot.prototype, "strategySlugs", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: String, required: true, trim: true }),
     __metadata("design:type", String)

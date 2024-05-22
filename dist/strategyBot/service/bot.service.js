@@ -28,10 +28,12 @@ let BotService = class BotService {
     }
     async create(createBotDto) {
         try {
-            let strategySlug = createBotDto.strategySlug || "";
-            let strategy = await this.strategyService.findBySlug(strategySlug);
-            if (!strategy) {
-                return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.NO_DATA_FOUND, constants_1.STRATEGY_NOT_FOUND, null);
+            let strategySlugs = createBotDto.strategySlugs || [];
+            for (const strategySlug of strategySlugs) {
+                const strategy = await this.strategyService.findBySlug(strategySlug);
+                if (!strategy) {
+                    return (0, constants_1.createApiResponse)(common_1.HttpStatus.NOT_FOUND, constants_1.NO_DATA_FOUND, `${constants_1.STRATEGY_NOT_FOUND} with slug ${strategySlug}`, null);
+                }
             }
             const createBot = new this.BotModel(createBotDto);
             await createBot.save();

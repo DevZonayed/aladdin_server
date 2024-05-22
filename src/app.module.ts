@@ -15,10 +15,10 @@ import { getDefaultMailConnectionConfig } from './common/constants/mail.connecti
 import { getDefaultDbConnectionString } from './common/constants/mongoose.connection';
 import { getThroTTLconfig } from './common/constants/throttle.config';
 import { httpConfig } from './common/module/http/http-config';
+import { NotificationModule } from './notification/mail/notification.module';
 import { StrategyModule } from './strategy/strategy.module';
 import { BotModule } from './strategyBot/bot.module';
 import { UserModule } from './user/user.module';
-import { NotificationModule } from './notification/mail/notification.module';
 
 @Module({
   imports: [
@@ -35,6 +35,7 @@ import { NotificationModule } from './notification/mail/notification.module';
     BinanceModule,
     StrategyModule,
     BotModule,
+    // BinanceBotModule,
     NotificationModule
   ],
   controllers: [AppController],

@@ -23,24 +23,14 @@
 /// <reference types="mongoose/types/virtuals" />
 /// <reference types="mongoose/types/inferschematype" />
 import { Document, Types } from 'mongoose';
-export declare class Bot extends Document {
-    BotName: string;
-    description: string;
+export declare class BinanceBot extends Document {
+    strategyAccauntName: string;
+    strategyAccaunt: Types.ObjectId;
     strategySlugs: string[];
-    strategyId: string;
-    p20t: string;
-    csrfToken: string;
-    scrapInterval: number;
-    isPublic: boolean;
-    runningOrders: number;
-    isRunning: boolean;
-    haveProxy: boolean;
-    proxyUrl: string;
-    startAt: Date;
-    createdBy: Types.ObjectId;
+    isActive: boolean;
 }
-export declare const BotSchema: import("mongoose").Schema<Bot, import("mongoose").Model<Bot, any, any, any, Document<unknown, any, Bot> & Bot & {
+export declare const BinanceBotSchema: import("mongoose").Schema<BinanceBot, import("mongoose").Model<BinanceBot, any, any, any, Document<unknown, any, BinanceBot> & BinanceBot & {
     _id: Types.ObjectId;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Bot, Document<unknown, {}, import("mongoose").FlatRecord<Bot>> & import("mongoose").FlatRecord<Bot> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, BinanceBot, Document<unknown, {}, import("mongoose").FlatRecord<BinanceBot>> & import("mongoose").FlatRecord<BinanceBot> & {
     _id: Types.ObjectId;
 }>;

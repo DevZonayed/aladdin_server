@@ -271,7 +271,7 @@ export class ScrapWorker {
             order = this.handleHadgeOrderDto(order)
             let strategyService: StrategyService = this.strategyService;
             let botName = this.botDto.BotName
-            let botSlag = this.botDto.strategySlug
+            let botSlugs = Array.isArray(this.botDto.strategySlugs) ? this.botDto.strategySlugs : [this.botDto.strategySlugs]
             let orderPayload: OrderWebHookDto = {
                 copyOrderId: `${botName}-${order.id}`,
                 isolated: Boolean(order.isolated),
@@ -283,10 +283,13 @@ export class ScrapWorker {
                 symbol: order.symbol,
                 type: "LIMIT"
             }
-            let result: any = await strategyService.handleWebHook(botSlag, orderPayload)
+
             let message = `New Order Created for ${order.symbol} with ${order.positionAmount} quantity`
-            if (typeof result.payload == "string") {
-                message += `\n but something went wrong, it returns: ${result.payload}`
+            for (const botSlug in botSlugs) {
+                let result: any = await strategyService.handleWebHook(botSlug, orderPayload)
+                if (typeof result.payload == "string") {
+                    message += `\n but something went wrong, it returns: ${result.payload} in "${botSlug}" this strategy`
+                }
             }
             sendSuccessNotificationToAdmins(this.mailNotificationService, message)
 
@@ -329,7 +332,7 @@ export class ScrapWorker {
             // Order Procidure
             let strategyService: StrategyService = this.strategyService;
             let botName = this.botDto.BotName
-            let botSlag = this.botDto.strategySlug
+            let botSlugs = Array.isArray(this.botDto.strategySlugs) ? this.botDto.strategySlugs : [this.botDto.strategySlugs]
             let order = newOrder;
             let orderPayload: OrderWebHookDto = {
                 copyOrderId: `${botName}-${order.id}`,
@@ -342,12 +345,15 @@ export class ScrapWorker {
                 symbol: order.symbol,
                 type: "MARKET"
             }
-            let result: any = await strategyService.handleWebHook(botSlag, orderPayload)
 
             let message = `Order Updated with ${OrderType} for ${order.symbol} with ${Math.abs(Number(orderQty))} quantity`;
-            if (typeof result.payload == "string") {
-                message += `\n but something went wrong, it returns: ${result.payload}`
+            for (const botSlug in botSlugs) {
+                let result: any = await strategyService.handleWebHook(botSlug, orderPayload)
+                if (typeof result.payload == "string") {
+                    message += `\n but something went wrong, it returns: ${result.payload} in "${botSlug}" Strategy`
+                }
             }
+
             sendSuccessNotificationToAdmins(this.mailNotificationService, message)
         } catch (err) {
             console.error(`Error Occured on order update in ${this.botDto.BotName} Bot!`, err);
@@ -362,7 +368,7 @@ export class ScrapWorker {
             order = this.handleHadgeOrderDto(order);
             let strategyService: StrategyService = this.strategyService
             let botName = this.botDto.BotName
-            let botSlag = this.botDto.strategySlug
+            let botSlugs = Array.isArray(this.botDto.strategySlugs) ? this.botDto.strategySlugs : [this.botDto.strategySlugs]
             let orderPayload: OrderWebHookDto = {
                 copyOrderId: `${botName}-${order.id}`,
                 isolated: Boolean(order.isolated),
@@ -374,12 +380,16 @@ export class ScrapWorker {
                 symbol: order.symbol,
                 type: "MARKET"
             }
-            let result: any = await strategyService.handleWebHook(botSlag, orderPayload)
+
             let message = `Order Closed for ${order.symbol} with ${order.positionAmount} quantity`
-            if (typeof result.payload == "string") {
-                message += `\n but something went wrong, it returns: ${result.payload}`
+            for (const botSlug in botSlugs) {
+                let result: any = await strategyService.handleWebHook(botSlug, orderPayload)
+                if (typeof result.payload == "string") {
+                    message += `\n but something went wrong, it returns: ${result.payload} in "${botSlug}"`
+                }
             }
             sendSuccessNotificationToAdmins(this.mailNotificationService, message)
+
         } catch (err) {
             console.error(`Error Occured on order close in ${this.botDto.BotName} Bot!`, err);
             let message = `Order Closed for ${order.symbol} Error : ${err.message}`

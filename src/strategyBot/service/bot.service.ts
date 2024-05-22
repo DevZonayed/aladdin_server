@@ -23,16 +23,19 @@ export class BotService {
     createBotDto: CreateBotDto,
   ) {
     try {
-      let strategySlug = createBotDto.strategySlug || "";
-      let strategy = await this.strategyService.findBySlug(strategySlug);
-      if (!strategy) {
-        return createApiResponse(
-          HttpStatus.NOT_FOUND,
-          NO_DATA_FOUND,
-          STRATEGY_NOT_FOUND,
-          null,
-        );
+      let strategySlugs = createBotDto.strategySlugs || [];
+      for (const strategySlug of strategySlugs) {
+        const strategy = await this.strategyService.findBySlug(strategySlug);
+        if (!strategy) {
+          return createApiResponse(
+            HttpStatus.NOT_FOUND,
+            NO_DATA_FOUND,
+            `${STRATEGY_NOT_FOUND} with slug ${strategySlug}`,
+            null,
+          );
+        }
       }
+
 
       const createBot = new this.BotModel(
         createBotDto,

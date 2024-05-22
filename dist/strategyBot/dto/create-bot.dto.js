@@ -33,12 +33,12 @@ __decorate([
 ], CreateBotDto.prototype, "description", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
-        type: String,
+        type: [String],
         description: 'The Stratefy Slug that you want to add on this bot',
-        example: "demo-1",
+        example: ["demo-1"],
     }),
-    __metadata("design:type", String)
-], CreateBotDto.prototype, "strategySlug", void 0);
+    __metadata("design:type", Array)
+], CreateBotDto.prototype, "strategySlugs", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({
         type: String,

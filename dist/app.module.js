@@ -24,10 +24,10 @@ const mail_connection_1 = require("./common/constants/mail.connection");
 const mongoose_connection_1 = require("./common/constants/mongoose.connection");
 const throttle_config_1 = require("./common/constants/throttle.config");
 const http_config_1 = require("./common/module/http/http-config");
+const notification_module_1 = require("./notification/mail/notification.module");
 const strategy_module_1 = require("./strategy/strategy.module");
 const bot_module_1 = require("./strategyBot/bot.module");
 const user_module_1 = require("./user/user.module");
-const notification_module_1 = require("./notification/mail/notification.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
