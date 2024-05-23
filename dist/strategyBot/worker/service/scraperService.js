@@ -227,12 +227,13 @@ class ScrapWorker {
                 type: "LIMIT"
             };
             let message = `New Order Created for ${order.symbol} with ${order.positionAmount} quantity`;
-            for (const botSlug in botSlugs) {
+            console.warn(botSlugs);
+            botSlugs.forEach(async (botSlug) => {
                 let result = await strategyService.handleWebHook(botSlug, orderPayload);
                 if (typeof result.payload == "string") {
                     message += `\n but something went wrong, it returns: ${result.payload} in "${botSlug}" this strategy`;
                 }
-            }
+            });
             (0, botMail_utils_1.sendSuccessNotificationToAdmins)(this.mailNotificationService, message);
         }
         catch (err) {
@@ -282,12 +283,12 @@ class ScrapWorker {
                 type: "MARKET"
             };
             let message = `Order Updated with ${OrderType} for ${order.symbol} with ${Math.abs(Number(orderQty))} quantity`;
-            for (const botSlug in botSlugs) {
+            botSlugs.forEach(async (botSlug) => {
                 let result = await strategyService.handleWebHook(botSlug, orderPayload);
                 if (typeof result.payload == "string") {
                     message += `\n but something went wrong, it returns: ${result.payload} in "${botSlug}" Strategy`;
                 }
-            }
+            });
             (0, botMail_utils_1.sendSuccessNotificationToAdmins)(this.mailNotificationService, message);
         }
         catch (err) {
@@ -314,12 +315,12 @@ class ScrapWorker {
                 type: "MARKET"
             };
             let message = `Order Closed for ${order.symbol} with ${order.positionAmount} quantity`;
-            for (const botSlug in botSlugs) {
+            botSlugs.forEach(async (botSlug) => {
                 let result = await strategyService.handleWebHook(botSlug, orderPayload);
                 if (typeof result.payload == "string") {
                     message += `\n but something went wrong, it returns: ${result.payload} in "${botSlug}"`;
                 }
-            }
+            });
             (0, botMail_utils_1.sendSuccessNotificationToAdmins)(this.mailNotificationService, message);
         }
         catch (err) {
