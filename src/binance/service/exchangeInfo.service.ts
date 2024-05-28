@@ -92,13 +92,17 @@ export class BinanceExchaneService {
 
     async getCurrentPrice(symbol: string): Promise<number> {
         try {
-            const ticker = await this.binanceInstance.prices(symbol);
-            return parseFloat(ticker[symbol]);
+            const ticker = await this.binanceInstance.futuresPrices();
+            const symbolPrice = ticker.find(p => p.symbol === symbol);
+            if (!symbolPrice) {
+                throw new Error(`Failed to fetch current price for symbol ${symbol}`);
+            }
+            return parseFloat(symbolPrice.price);
         } catch (err) {
-            console.error(err);
-            throw new Error("Failed to fetch current price for symbol");
+            throw new Error(`Failed to fetch current price for symbol from binance : ${err.message}`);
         }
     }
+
 
     async formatPrice(symbol: string, price: any): Promise<number> {
         price = parseFloat(price)
