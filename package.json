@@ -21,7 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs-modules/mailer": "^1.9.1",
+    "@nestjs-modules/mailer": "^1.11.2",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/cache-manager": "^2.2.0",
     "@nestjs/common": "^10.0.0",
@@ -44,7 +44,7 @@
     "mongoose": "^8.0.3",
     "nestjs-joi": "^1.10.0",
     "node-binance-api": "^0.13.1",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^10.0.1",
     "passport": "^0.7.0",
     "passport-apple": "^2.0.2",
     "passport-facebook": "^3.0.0",
