@@ -41,7 +41,7 @@
     "class-validator": "^0.14.0",
     "csurf": "^1.11.0",
     "express-session": "^1.17.3",
-    "mongoose": "^8.0.3",
+    "mongoose": "^8.24.8",
     "nestjs-joi": "^1.10.0",
     "node-binance-api": "^0.13.1",
     "nodemailer": "^6.9.7",
